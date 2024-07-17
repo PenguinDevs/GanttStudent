@@ -193,6 +193,9 @@ QPushButton:hover {
         <pointsize>13</pointsize>
        </font>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
       <property name="styleSheet">
        <string notr="true">qproperty-alignment: AlignLeft;
 border: 0px;
