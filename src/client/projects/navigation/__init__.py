@@ -25,11 +25,13 @@ class ProjectsNavigationPage(BasePage):
         widget = super()._load_ui()
 
         self.menu_bar = QMenuBar(widget)
+        
         self.file_menu = self.menu_bar.addMenu('&File')
-        self.file_menu.addSeparator()
+
         self.logout_action = QAction()
         self.logout_action.setText('Log out')
         self.file_menu.addAction(self.logout_action)
+        
         self.exit_action = QAction()
         self.exit_action.setText('Exit')
         self.file_menu.addAction(self.exit_action)
@@ -316,16 +318,6 @@ class ProjectsNavigationController(BaseController):
         self.query = self._view.search_field.text()
         self.render_projects()
 
-    def logout(self) -> None:
-        """
-        Log the user out, and return them to the login screen.
-        """
-        self._client.cache["access_token"] = None
-        self._client.save_cache()
-
-        # Return to login screen.
-        self._client.main_window.login_controller.show()
-
     def show(self) -> None:
         """
         Show the projects navigation screen.
@@ -337,7 +329,7 @@ class ProjectsNavigationController(BaseController):
 
     def _connect_signals(self) -> None:
         # Bind menu bar actions.
-        self._view.logout_action.triggered.connect(self.logout)
+        self._view.logout_action.triggered.connect(self._client.logout)
         self._view.exit_action.triggered.connect(self._client.exit)
 
         # Bind new project button.
@@ -358,6 +350,8 @@ class ProjectViewItem(QWidget):
         """
         Open this project
         """
+        self._controller._client.main_window.project_view_controller.show()
+        self._controller._client.main_window.project_view_controller.load(self._controller.projects[self.objectName()])
 
     def delete(self) -> None:
         """

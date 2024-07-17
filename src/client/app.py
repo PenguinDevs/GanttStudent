@@ -12,10 +12,13 @@ from PyQt6.QtWidgets import(
 )
 from PyQt6.QtNetwork import QNetworkAccessManager
 
+from utils.window.page_base import BasePage
+from utils.window.controller_base import BaseController
+
 from authentication.register import RegisterPage, RegisterController
 from authentication.login import LoginPage, LoginController
 from projects.navigation import ProjectsNavigationPage, ProjectsNavigationController
-# from projects.view import ProjectViewWindow, ProjectViewController
+from projects.view import ProjectViewPage, ProjectViewController
 
 load_dotenv()
 
@@ -52,9 +55,19 @@ class ClientApplication():
     def switch_to(self, page: QWidget) -> None:
         return self.main_window.switch_to(page)
 
-    def _setup_windows(self):
+    def _setup_windows(self) -> None:
         self.main_window = MainWindow(self)
         self.main_window.show()
+
+    def logout(self) -> None:
+        """
+        Log the user out, and return them to the login screen.
+        """
+        self._client.cache["access_token"] = None
+        self._client.save_cache()
+
+        # Return to login screen.
+        self._client.main_window.login_controller.show()
     
     def exit(self):
         self.app.quit()
@@ -83,35 +96,25 @@ class MainWindow(QMainWindow):
     def switch_to(self, page: QWidget) -> None:
         self.stacked_widget.setCurrentWidget(page)
 
+    def _initialise_page(self, page: BasePage, controller: BaseController) -> None:
+        page = page()
+        controller = controller(self.client, page)
+        page.assign_controller(controller)
+        self.stacked_widget.addWidget(page)
+
+        return page, controller
+
     def _initialise_widgets(self):
-        self.register_page = RegisterPage()
-        self.register_controller = RegisterController(self.client, self.register_page)
-        self.register_page.assign_controller(self.register_controller)
-        self.stacked_widget.addWidget(self.register_page)
-
-        self.login_page = LoginPage()
-        # login_window.show()
-        self.login_controller = LoginController(self.client, self.login_page)
-        self.login_page.assign_controller(self.login_controller)
-        self.stacked_widget.addWidget(self.login_page)
-
-        self.navigation_page = ProjectsNavigationPage()
-        # login_window.show()
-        self.navigation_controller = ProjectsNavigationController(self.client, self.navigation_page)
-        self.navigation_page.assign_controller(self.navigation_controller)
-        self.stacked_widget.addWidget(self.navigation_page)
-
-        # navigation_window = NavigationWindow()
-        # # navigation_window.show()
-        # navigation_controller = NavigationController(navigation_window, async_runner)
-
-        # project_view_window = ProjectViewWindow()
-        # # project_view_window.show()
-        # project_view_controller = ProjectViewController(project_view_window, async_runner)
+        self.register_page, self.register_controller = self._initialise_page(RegisterPage, RegisterController)
+        self.login_page, self.login_controller = self._initialise_page(LoginPage, LoginController)
+        self.navigation_page, self.navigation_controller = self._initialise_page(ProjectsNavigationPage, ProjectsNavigationController)
+        self.project_view_page, self.project_view_controller = self._initialise_page(ProjectViewPage, ProjectViewController)
 
         return (
             self.register_controller,
-            # self.login_controller,
+            self.login_controller,
+            self.navigation_controller,
+            self.project_view_controller,
         )
 
 def main():
