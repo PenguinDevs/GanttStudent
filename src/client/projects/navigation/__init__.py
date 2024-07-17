@@ -5,7 +5,7 @@ from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
 from PyQt6.QtCore import QUrl, Qt
 from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QWidget, QMenuBar, QGridLayout, QLineEdit
+from PyQt6.QtWidgets import QWidget, QMenuBar, QGridLayout
 
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
@@ -135,6 +135,12 @@ class ProjectsNavigationController(BaseController):
         reply.finished.connect(lambda: self._on_delete_project_response(reply))
 
     def render_projects(self) -> None:
+        """
+        Render the projects on the screen.
+
+        Takes into account of what the .query attribute is set to, and displays
+        the relevant projects accordingly.
+        """
         projects = self.projects.copy()
         omitted = []
         for uuid, project_data in projects.items():
@@ -163,7 +169,20 @@ class ProjectsNavigationController(BaseController):
             layout.setRowMinimumHeight(row, 300)
             layout.addWidget(item, row, column)
 
-    def _reconciliate_projects(self, server_projects: list = None) -> None:
+    def _reconciliate_projects(self, server_projects: dict) -> None:
+        """
+        Deletes any projects that are missing from the server on the local
+        machine.
+
+        Creates any new projects that are on the server but not on the local
+        machine.
+
+        Finally, calls the .render_projects() method to render the projects on
+        the screen.
+
+        Args:
+            server_projects (dict): A dictionary of projects from the server.
+        """
         server_projects = server_projects or {}
         self.projects = {}
         
@@ -217,6 +236,9 @@ class ProjectsNavigationController(BaseController):
         self._reconciliate_projects(payload["projects"])
         
     def fetch_projects(self) -> None:
+        """
+        Fetch all projects from the server that the user has access to.
+        """
         reply: QNetworkReply = self._network_manager.post(
             self._fetch_projects_endpoint,
             to_json_data(
@@ -293,23 +315,33 @@ class ProjectsNavigationController(BaseController):
         self.render_projects()
 
     def logout(self) -> None:
+        """
+        Log the user out, and return them to the login screen.
+        """
         self._client.cache["access_token"] = None
         self._client.save_cache()
+
+        # Return to login screen.
         self._client.main_window.login_controller.show()
 
     def show(self) -> None:
+        """
+        Show the projects navigation screen.
+
+        Also fetches the projects from the server by doing so.
+        """
         super().show()
         self.fetch_projects()
 
     def _connect_signals(self) -> None:
-        # Menu bar actions
+        # Bind menu bar actions.
         self._view.logout_action.triggered.connect(self.logout)
         self._view.exit_action.triggered.connect(self._client.exit)
 
-        # Project buttons
+        # Bind new project button.
         self._view.new_project_button.clicked.connect(self._on_create_project)
 
-        # Search field
+        # Bind search field updated.
         self._view.search_field.textChanged.connect(self._on_search_query)
 
 class ProjectViewItem(QWidget):
@@ -321,12 +353,21 @@ class ProjectViewItem(QWidget):
         self._load_ui(name, uuid)
 
     def open(self) -> None:
-        pass
+        """
+        Open this project
+        """
 
     def delete(self) -> None:
+        """
+        Delete this project.
+        """
         self._controller.delete_project(self.objectName())
 
     def rename(self) -> None:
+        """
+        Rename this project, to the name given by the input in the .item_name
+        field.
+        """
         self.item_name.clearFocus()
         if self.item_name.text() == self._controller.projects[self.objectName()]["name"]:
             return
@@ -334,6 +375,16 @@ class ProjectViewItem(QWidget):
         self._controller.rename_project(self.objectName(), self.item_name.text())
 
     def _load_ui(self, name: str, uuid: str) -> QWidget:
+        """
+        Load the UI for the project view item.
+
+        Args:
+            name (str): The name of the project.
+            uuid (str): The uuid of the project.
+
+        Returns:
+            QWidget: The widget object created.
+        """
         widget = uic.load_ui.loadUi(self.ui_path, self)
         widget.setObjectName(uuid)
         widget.item_name.setText(name)
