@@ -239,10 +239,18 @@ qproperty-alignment: AlignLeft;</string>
           <string>Login</string>
          </property>
          <property name="styleSheet">
-          <string notr="true">border: 2px solid #8ee895;
-border-radius: 10px;
-background: #c3f7c8;
-color: #3a414a;</string>
+          <string notr="true">QPushButton {
+	border: 2px solid #8ee895;
+	border-radius: 10px;
+	background: #c3f7c8;
+	color: #3a414a;
+}
+
+QPushButton:hover {
+	border: 2px solid #77e680;
+	background: #9ce6a3
+}
+</string>
          </property>
          <property name="text">
           <string>New project</string>
@@ -291,12 +299,18 @@ color: #ffffff;</string>
         <height>676</height>
        </rect>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="styleSheet">
        <string notr="true">border: 0px;
 background: #161e3c;
 color: #ffffff;</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
+      <layout class="QGridLayout" name="gridLayout" rowstretch="0,0" rowminimumheight="300,300">
        <property name="sizeConstraint">
         <enum>QLayout::SetMinAndMaxSize</enum>
        </property>
@@ -315,12 +329,18 @@ color: #ffffff;</string>
        <property name="spacing">
         <number>20</number>
        </property>
-       <item row="0" column="0">
-        <widget class="QFrame" name="item">
+       <item row="0" column="2">
+        <widget class="QFrame" name="blank_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>300</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -340,185 +360,20 @@ color: #ffffff;</string>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="preview">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="item_footer">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <widget class="QLabel" name="item_name">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>10</y>
-               <width>271</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>13</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">qproperty-alignment: AlignLeft;</string>
-             </property>
-             <property name="text">
-              <string>Calculator app</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="open_button">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #8ee895;
-border-radius: 5px;
-background: #c3f7c8;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Open</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="delete_button">
-             <property name="geometry">
-              <rect>
-               <x>150</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #ff8f8f;
-border-radius: 5px;
-background: #ffd9d9;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
-       <item row="0" column="2">
-        <widget class="QFrame" name="item_3">
+       <item row="0" column="0">
+        <widget class="QFrame" name="blank_1">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>300</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -538,185 +393,20 @@ color: #ffffff;</string>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="preview_3">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="item_footer_3">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <widget class="QLabel" name="label_4">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>10</y>
-               <width>271</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>13</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">qproperty-alignment: AlignLeft;</string>
-             </property>
-             <property name="text">
-              <string>Calculator app</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="open_button_3">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #8ee895;
-border-radius: 5px;
-background: #c3f7c8;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Open</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="delete_button_3">
-             <property name="geometry">
-              <rect>
-               <x>150</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #ff8f8f;
-border-radius: 5px;
-background: #ffd9d9;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QFrame" name="item_2">
+        <widget class="QFrame" name="blank_2">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>300</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -736,185 +426,20 @@ color: #ffffff;</string>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="preview_2">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="item_footer_2">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <widget class="QLabel" name="label_3">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>10</y>
-               <width>271</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>13</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">qproperty-alignment: AlignLeft;</string>
-             </property>
-             <property name="text">
-              <string>Calculator app</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="open_button_2">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #8ee895;
-border-radius: 5px;
-background: #c3f7c8;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Open</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="delete_button_2">
-             <property name="geometry">
-              <rect>
-               <x>150</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #ff8f8f;
-border-radius: 5px;
-background: #ffd9d9;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QFrame" name="item_4">
+        <widget class="QFrame" name="blank_4">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>300</height>
+           <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
@@ -934,174 +459,6 @@ color: #ffffff;</string>
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="preview_4">
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="item_footer_4">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <widget class="QLabel" name="label_5">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>10</y>
-               <width>271</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>13</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Calculator app</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="open_button_4">
-             <property name="geometry">
-              <rect>
-               <x>10</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #8ee895;
-border-radius: 5px;
-background: #c3f7c8;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Open</string>
-             </property>
-            </widget>
-            <widget class="QPushButton" name="delete_button_4">
-             <property name="geometry">
-              <rect>
-               <x>150</x>
-               <y>40</y>
-               <width>131</width>
-               <height>31</height>
-              </rect>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>16777215</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Leelawadee</family>
-               <pointsize>18</pointsize>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
-             </property>
-             <property name="toolTip">
-              <string>Login</string>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: 2px solid #ff8f8f;
-border-radius: 5px;
-background: #ffd9d9;
-color: #3a414a;</string>
-             </property>
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </widget>
-          </item>
-         </layout>
         </widget>
        </item>
       </layout>

@@ -6,6 +6,7 @@ from db import MongoDB
 
 from authentication.register import RegisterRoute
 from authentication.login import LoginRoute
+from projects.projects import ProjectsRoute
 
 load_dotenv()
 
@@ -36,12 +37,13 @@ class WebServer():
         """
         web.run_app(self.app)
 
-if __name__ == "__main__":# NO
+if __name__ == "__main__":
     db = MongoDB(address=os.getenv('MONGO_ADDRESS'), username=os.getenv('MONGO_USER'), password=os.getenv('MONGO_PASS'))
     app = web.Application()
     server = WebServer(app, [
         RegisterRoute,
-        LoginRoute
+        LoginRoute,
+        ProjectsRoute,
     ], db)
 
     # This runs indefinitely until the server is forcefully stopped.

@@ -6,6 +6,7 @@ from PyQt6.QtCore import QUrl
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data
+from utils.dialog import create_message_dialog
 
 
 class RegisterPage(BasePage):
@@ -46,6 +47,8 @@ class RegisterController(BaseController):
             return self._handle_register_error(reply, reply.error())
         
         reply.deleteLater()
+
+        create_message_dialog(self._view, "Success", "Registration successful. Please log in.").exec()
 
         self._switch_to_login()
         

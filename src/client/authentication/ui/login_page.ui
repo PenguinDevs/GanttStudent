@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1080</width>
-    <height>720</height>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -317,11 +317,22 @@ qproperty-alignment: AlignLeft;</string>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;
-qproperty-alignment: AlignCenter;</string>
+            <string notr="true">QLineEdit {
+	border: 2px solid #979ea8;
+	border-radius: 10px;
+	background: #1e2749;
+	color: #ffffff;
+	qproperty-alignment: AlignCenter;
+}
+
+QLineEdit:hover {
+	background: #161d36;
+}
+
+QLineEdit:focus {
+	border: 4px solid #4b4f54;
+	background: #161d36;
+}</string>
            </property>
            <property name="text">
             <string/>
@@ -356,11 +367,22 @@ qproperty-alignment: AlignCenter;</string>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border: 2px solid #979ea8;
-border-radius: 10px;
-background: #1e2749;
-color: #ffffff;
-qproperty-alignment: AlignCenter;</string>
+            <string notr="true">QLineEdit {
+	border: 2px solid #979ea8;
+	border-radius: 10px;
+	background: #1e2749;
+	color: #ffffff;
+	qproperty-alignment: AlignCenter;
+}
+
+QLineEdit:hover {
+	background: #161d36;
+}
+
+QLineEdit:focus {
+	border: 4px solid #4b4f54;
+	background: #161d36;
+}</string>
            </property>
            <property name="text">
             <string/>
@@ -432,10 +454,17 @@ color: #ffffff;</string>
                <string>Login</string>
               </property>
               <property name="styleSheet">
-               <string notr="true">border: 2px solid #8ee895;
-border-radius: 10px;
-background: #c3f7c8;
-color: #3a414a;</string>
+               <string notr="true">QPushButton {
+	border: 2px solid #8ee895;
+	border-radius: 10px;
+	background: #c3f7c8;
+	color: #3a414a;
+}
+
+QPushButton:hover {
+	border: 2px solid #77e680;
+	background: #9ce6a3
+}</string>
               </property>
               <property name="text">
                <string>Login ➤</string>
@@ -450,14 +479,21 @@ color: #3a414a;</string>
            <property name="font">
             <font>
              <bold>true</bold>
-             <underline>true</underline>
+             <underline>false</underline>
+             <strikeout>false</strikeout>
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">border: 0px;
-background: #1e2749;
-color: #ffffff;
-text-decoration: underline;</string>
+            <string notr="true">QPushButton {
+	border: 0px;
+	background: #1e2749;
+	color: #ffffff;
+	text-decoration: none;
+}
+
+QPushButton:hover {
+	text-decoration: underline;
+}</string>
            </property>
            <property name="text">
             <string>No account? Sign up instead</string>

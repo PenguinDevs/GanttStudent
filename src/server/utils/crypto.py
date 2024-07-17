@@ -1,3 +1,5 @@
+import json
+import base64
 from datetime import datetime, timedelta, timezone
 
 from hashlib import sha256
@@ -6,7 +8,7 @@ from secrets import token_hex
 import jwt
 
 ACCESS_TOKEN_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRES_IN = 20
+ACCESS_TOKEN_EXPIRES_IN = 60**2 # 1 hour
 
 
 def hash_password(username: str, password: str) -> str:
@@ -59,7 +61,19 @@ def get_access_token(username: str, secret: str) -> str:
     }
     return jwt.encode(payload, secret, ACCESS_TOKEN_ALGORITHM)
 
-def decode_access_token(username: str, secret: str, access_token: str) -> tuple:
+def decode_jwt(token: str) -> dict:
+    """
+    Decode a jwt token.
+
+    Args:
+        token (str): The jwt token to decode.
+
+    Returns:
+        dict: The decoded token.
+    """
+    return json.loads(base64.b64decode(token.split('.')[1] + '===').decode('utf-8'))
+
+def decode_access_token(secret: str, access_token: str) -> tuple:
     """
     Decode the jwt access token.
 
@@ -75,10 +89,10 @@ def decode_access_token(username: str, secret: str, access_token: str) -> tuple:
     """
     return jwt.decode(access_token, secret, algorithms=[ACCESS_TOKEN_ALGORITHM])
 
-def is_access_token_valid(username: str, secret: str, access_token: str) -> tuple:
+def is_access_token_valid(secret: str, access_token: str) -> tuple:
     try:
-        decode_access_token(username, secret, access_token)
-        return True, ''
+        decoded = jwt.decode(access_token, secret, algorithms=[ACCESS_TOKEN_ALGORITHM])
+        return True, decoded['sub']
     except jwt.ExpiredSignatureError:
         return False, 'expired'
     except jwt.DecodeError:

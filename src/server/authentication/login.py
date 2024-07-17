@@ -4,6 +4,7 @@ from aiohttp import web
 from base_router import WebAppRoutes
 from typing import TYPE_CHECKING
 
+from utils.web import parse_json_request
 from utils.crypto import hash_password, get_access_token
 if TYPE_CHECKING:
     # Importing only for type checking purposes. This is not imported when the
@@ -30,6 +31,9 @@ class LoginRoute(WebAppRoutes):
                 200: Success.
         """
         server: WebServer = request.app.app
+        body = await parse_json_request(request, ["username", "password"], requires_auth=False)
+        if isinstance(body, web.Response):
+            return body
 
         try:
             body = await request.json()

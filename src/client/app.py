@@ -55,7 +55,10 @@ class ClientApplication():
     def _setup_windows(self):
         self.main_window = MainWindow(self)
         self.main_window.show()
-        
+    
+    def exit(self):
+        self.app.quit()
+
     def run(self):
         self.app.exec()
 

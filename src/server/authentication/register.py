@@ -4,6 +4,7 @@ from aiohttp import web
 from base_router import WebAppRoutes
 from typing import TYPE_CHECKING
 
+from utils.web import parse_json_request
 from utils.crypto import hash_password, generate_secret_key, get_access_token
 if TYPE_CHECKING:
     from app import WebServer
@@ -28,6 +29,9 @@ class RegisterRoute(WebAppRoutes):
                 200: Success.
         """
         server: WebServer = request.app.app
+        body = await parse_json_request(request, ["username", "password"], requires_auth=False)
+        if isinstance(body, web.Response):
+            return body
 
         try:
             body = await request.json()
@@ -44,6 +48,7 @@ class RegisterRoute(WebAppRoutes):
         if not user is None:
             return server.json_payload_response(409, {"message": "User already exists."})
         
+        # Username validation checks.
         if len(username) > 32:
             return server.json_payload_response(400, {"message": "Username too long. Must be at most 32 characters."})
         elif len(username) < 4:
@@ -51,6 +56,7 @@ class RegisterRoute(WebAppRoutes):
         elif not any(char.isalnum() for char in username):
             return server.json_payload_response(400, {"message": "Username must contain only letters and numbers."})
         
+        # Password validation checks.
         if len(password) < 8 or len(password) > 32:
             return server.json_payload_response(400, {"message": "Password must be between 8 and 32 characters."})
         elif password.lower() == password:
