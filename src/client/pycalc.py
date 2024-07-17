@@ -42,7 +42,7 @@ class PyCalcWindow(QMainWindow):
         self.display.setReadOnly(True)
         self.generalLayout.addWidget(self.display)
 
-    def _creategButtons(self):
+    def _createButtons(self):
         self.buttonMap = {}
         buttonsLayout = QGridLayout()
         keyBoard = [
