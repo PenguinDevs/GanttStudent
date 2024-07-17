@@ -1,25 +1,32 @@
 from __future__ import annotations
 from aiohttp import web
-from hashlib import sha256
 
 from base_router import WebAppRoutes
 from typing import TYPE_CHECKING
 
+from utils.crypto import hash_password, generate_secret_key, get_access_token
 if TYPE_CHECKING:
-    # Importing only for type checking purposes. This is not imported when the
-    # code is run.
     from app import WebServer
 
 class RegisterRoute(WebAppRoutes):
-    def __init__(self, web_server: WebServer) -> None:
-        self.web_server = web_server
-
-        self.web_server.app.add_routes(self.routes)
+    """Route for registering a new user."""
 
     routes = web.RouteTableDef()
 
     @routes.post("/user/register")
     async def register_user(request: web.Request) -> web.Response:
+        """
+        Register a new user.
+
+        Args:
+            request (web.Request): The request object.
+        
+        Returns:
+            web.Response: The response object.
+                400: Invalid JSON payload or invalid username/password.
+                409: User already exists.
+                200: Success.
+        """
         server: WebServer = request.app.app
 
         try:
@@ -57,11 +64,11 @@ class RegisterRoute(WebAppRoutes):
         elif not any(not char.isalnum() for char in password):
             return server.json_payload_response(400, {"message": "Password must contain at least one special character."})
     
-        password_hash = sha256(password.encode("utf-8"))
-        password_hash.update(username.encode("utf-8"))
+        secret = generate_secret_key()
         user = {
             "username": username,
-            "password": password_hash.hexdigest()
+            "password_hash": hash_password(username, password),
+            "secret_key": secret
         }
 
         await server.db.write("users", "accounts", user)

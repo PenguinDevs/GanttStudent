@@ -5,6 +5,7 @@ from aiohttp import web
 from db import MongoDB
 
 from authentication.register import RegisterRoute
+from authentication.login import LoginRoute
 
 load_dotenv()
 
@@ -39,7 +40,8 @@ if __name__ == "__main__":# NO
     db = MongoDB(address=os.getenv('MONGO_ADDRESS'), username=os.getenv('MONGO_USER'), password=os.getenv('MONGO_PASS'))
     app = web.Application()
     server = WebServer(app, [
-        RegisterRoute
+        RegisterRoute,
+        LoginRoute
     ], db)
 
     # This runs indefinitely until the server is forcefully stopped.
