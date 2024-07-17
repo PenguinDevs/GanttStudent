@@ -1,3 +1,5 @@
+"""Server application for the backend API."""
+
 import os
 from dotenv import load_dotenv
 from aiohttp import web

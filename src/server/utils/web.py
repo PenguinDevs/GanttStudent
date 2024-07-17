@@ -1,3 +1,5 @@
+"""This module contains web utility functions for the web server."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from datetime import datetime, timedelta, timezone

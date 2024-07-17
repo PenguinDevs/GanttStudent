@@ -1,3 +1,5 @@
+"""Project view module."""
+
 import os
 
 from PyQt6.QtWidgets import(

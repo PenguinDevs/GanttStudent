@@ -1,3 +1,5 @@
+"""Base class for routes to be added to the web server routing table."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 

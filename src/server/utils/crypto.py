@@ -1,3 +1,5 @@
+""""Cryptography utilities for the server."""
+
 import json
 import base64
 from datetime import datetime, timedelta, timezone

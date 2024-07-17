@@ -1,3 +1,5 @@
+"""Route for registering a new user."""
+
 from __future__ import annotations
 from aiohttp import web
 

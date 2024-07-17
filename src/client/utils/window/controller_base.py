@@ -1,3 +1,5 @@
+"""Controller base class for all controllers in the application."""
+
 from __future__ import annotations
 from typing import TYPE_CHECKING
 

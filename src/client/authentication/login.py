@@ -1,3 +1,5 @@
+"""Login page and controller classes."""
+
 import os
 
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
@@ -8,7 +10,7 @@ from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data
 
 
-class LoginWindow(BasePage):
+class LoginPage(BasePage):
     ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\login_page.ui")
 
 class LoginController(BaseController):

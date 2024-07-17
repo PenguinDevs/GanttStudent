@@ -13,8 +13,8 @@ from PyQt6.QtWidgets import(
 from PyQt6.QtNetwork import QNetworkAccessManager
 
 from authentication.register import RegisterPage, RegisterController
-from authentication.login import LoginWindow, LoginController
-from projects.navigation import ProjectsNavigationWindow, ProjectsNavigationController
+from authentication.login import LoginPage, LoginController
+from projects.navigation import ProjectsNavigationPage, ProjectsNavigationController
 # from projects.view import ProjectViewWindow, ProjectViewController
 
 load_dotenv()
@@ -89,13 +89,13 @@ class MainWindow(QMainWindow):
         self.register_page.assign_controller(self.register_controller)
         self.stacked_widget.addWidget(self.register_page)
 
-        self.login_page = LoginWindow()
+        self.login_page = LoginPage()
         # login_window.show()
         self.login_controller = LoginController(self.client, self.login_page)
         self.login_page.assign_controller(self.login_controller)
         self.stacked_widget.addWidget(self.login_page)
 
-        self.navigation_page = ProjectsNavigationWindow()
+        self.navigation_page = ProjectsNavigationPage()
         # login_window.show()
         self.navigation_controller = ProjectsNavigationController(self.client, self.navigation_page)
         self.navigation_page.assign_controller(self.navigation_controller)

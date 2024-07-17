@@ -1,3 +1,5 @@
+"""Route for logging in as a user."""
+
 from __future__ import annotations
 from aiohttp import web
 

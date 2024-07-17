@@ -1,3 +1,5 @@
+"""Dialog popups for the client application."""
+
 from PyQt6.QtWidgets import(
     QWidget,
     QDialog,

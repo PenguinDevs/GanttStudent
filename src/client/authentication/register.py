@@ -1,3 +1,5 @@
+"""Register page and controller module."""
+
 import os
 
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply

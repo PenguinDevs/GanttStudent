@@ -1,3 +1,5 @@
+"""Projects navigation module."""
+
 import os
 import json
 
@@ -16,7 +18,7 @@ PROJECTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.p
 MAX_PROJECTS_COLUMNS = 3
 
 
-class ProjectsNavigationWindow(BasePage):
+class ProjectsNavigationPage(BasePage):
     ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\projects_navigation_page.ui")
 
     def _load_ui(self) -> QWidget:

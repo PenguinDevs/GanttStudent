@@ -1,3 +1,5 @@
+"""This module contains the MongoDB class, which is used to interact with the MongoDB database."""
+
 from motor import motor_asyncio
 import os
 
