@@ -4,3 +4,4 @@ __pycache__/
 
 # Virtual environment
 /.venv
+user_projects/
