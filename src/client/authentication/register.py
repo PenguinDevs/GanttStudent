@@ -97,6 +97,12 @@ class RegisterController(BaseController):
         if self.is_password_same() is False:
             # Display error message is already handled by ._check_password_confirmation()
             return
+        elif self._view.username_field.text() == "" or self._view.password_field.text() == "":
+            self.display_error("Username and password fields cannot be empty.")
+            return
+        elif self._view.password_confirm_field.text() == "":
+            self.display_error("Password confirmation field cannot be empty.")
+            return
 
         # Hide the error frame if it is visible.
         self._view.error_frame.hide()
@@ -127,7 +133,7 @@ class RegisterController(BaseController):
         """
         Switches to the login page.
         """
-        self._client.switch_to(self._client.main_window.login_page)
+        self._client.main_window.login_controller.show()
 
     def _connect_signals(self) -> None:
         # Bind register event.

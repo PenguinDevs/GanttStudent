@@ -48,7 +48,7 @@ class BaseController():
         Returns:
             None
         """
-        self._view.show()
+        self._client.switch_to(self._view)
 
     def hide(self) -> None:
         """

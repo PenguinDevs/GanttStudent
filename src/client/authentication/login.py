@@ -45,7 +45,12 @@ class LoginController(BaseController):
         if reply.error() != QNetworkReply.NetworkError.NoError:
             return self._handle_login_error(reply, reply.error())
         
-        print("Login completed", get_json_from_reply(reply))
+        response_body = get_json_from_reply(reply)
+        access_token = response_body["access_token"]
+        self._client.cache["access_token"] = access_token
+        self._client.save_cache()
+
+        self._client.main_window.navigation_controller.show()
         
         reply.deleteLater()
         
@@ -64,6 +69,8 @@ class LoginController(BaseController):
             self.display_error(get_json_from_reply(reply)["message"])
         elif error is QNetworkReply.NetworkError.InternalServerError:
             self.display_error("The server has experienced an unexpected error.")
+        elif error is QNetworkReply.NetworkError.AuthenticationRequiredError:
+            self.display_error("Invalid username or password.")
         else:
             self.display_error(f"An unexpected error of type {error.name}. Please try again later.")
 
@@ -92,6 +99,10 @@ class LoginController(BaseController):
         """
         A callback function for when the user presses the login button.
         """
+        if self._view.username_field.text() == "" or self._view.password_field.text() == "":
+            self.display_error("Username and password fields cannot be empty.")
+            return
+
         # Hide the error frame if it is visible.
         self._view.error_frame.hide()
 
@@ -101,7 +112,7 @@ class LoginController(BaseController):
         """
         Switches to the register page.
         """
-        self._client.main_window.stacked_widget.setCurrentWidget(self._client.main_window.register_page)
+        self._client.main_window.register_controller.show()
 
     def _connect_signals(self) -> None:
         # Bind login event.

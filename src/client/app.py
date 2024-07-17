@@ -1,6 +1,7 @@
 """Main client application."""
 
 import os
+import json
 from dotenv import load_dotenv
 
 from PyQt6 import uic, QtWidgets
@@ -11,13 +12,14 @@ from PyQt6.QtWidgets import(
 )
 from PyQt6.QtNetwork import QNetworkAccessManager
 
-import config
 from authentication.register import RegisterPage, RegisterController
 from authentication.login import LoginWindow, LoginController
-# from projects.navigation import NavigationWindow, NavigationController
+from projects.navigation import ProjectsNavigationWindow, ProjectsNavigationController
 # from projects.view import ProjectViewWindow, ProjectViewController
 
 load_dotenv()
+
+CACHE_PATH = "cache.json"
 
 
 class ClientApplication():
@@ -26,6 +28,26 @@ class ClientApplication():
         self.network_manager = QNetworkAccessManager()
 
         self._setup_windows()
+        self.load_cache()
+        if self.cache["access_token"] is None:
+            self.main_window.login_controller.show()
+        else:
+            self.main_window.navigation_controller.show()
+    
+    def load_cache(self):
+        if not os.path.exists(CACHE_PATH):
+            self.cache = {
+                "access_token": None
+            }
+            self.save_cache()
+            return
+
+        with open(CACHE_PATH, "r") as file:
+            self.cache = json.load(file)
+
+    def save_cache(self):
+        with open(CACHE_PATH, "w") as file:
+            json.dump(self.cache, file)
 
     def switch_to(self, page: QWidget) -> None:
         return self.main_window.switch_to(page)
@@ -69,6 +91,12 @@ class MainWindow(QMainWindow):
         self.login_controller = LoginController(self.client, self.login_page)
         self.login_page.assign_controller(self.login_controller)
         self.stacked_widget.addWidget(self.login_page)
+
+        self.navigation_page = ProjectsNavigationWindow()
+        # login_window.show()
+        self.navigation_controller = ProjectsNavigationController(self.client, self.navigation_page)
+        self.navigation_page.assign_controller(self.navigation_controller)
+        self.stacked_widget.addWidget(self.navigation_page)
 
         # navigation_window = NavigationWindow()
         # # navigation_window.show()
