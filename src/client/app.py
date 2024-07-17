@@ -14,50 +14,55 @@ from PyQt6.QtWidgets import(
 )
 from PyQt6.QtNetwork import QNetworkAccessManager
 
+import config
 from authentication.register import RegisterWindow, RegisterController
-# from authentication.login import LoginWindow, LoginController
+from authentication.login import LoginWindow, LoginController
 # from projects.navigation import NavigationWindow, NavigationController
 # from projects.view import ProjectViewWindow, ProjectViewController
 
 load_dotenv()
 
+class ClientApplication():
+    window_size = (config.DEFAULT_WINDOW_WIDTH, config.DEFAULT_WINDOW_HEIGHT)
+    is_full_screen = False
 
-def initialise_windows(app: QApplication, network_manager: QNetworkAccessManager):
-    register_window = RegisterWindow()
-    register_window.show()
-    register_controller = RegisterController(register_window, network_manager)
+    def __init__(self) -> None:
+        self.app = QApplication([])
+        self.network_manager = QNetworkAccessManager()
+        
+        controllers = self.initialise_windows()
+        
+    def run(self):
+        self.app.exec()
 
-    # login_window = LoginWindow()
-    # # login_window.show()
-    # login_controller = LoginController(login_window, async_runner)
+    def initialise_windows(self):
+        self.register_window = RegisterWindow()
+        self.register_controller = RegisterController(self, self.register_window)
+        self.register_window.assign_controller(self.register_controller)
+        self.register_controller.show()
+        self.register_window.size()
 
-    # navigation_window = NavigationWindow()
-    # # navigation_window.show()
-    # navigation_controller = NavigationController(navigation_window, async_runner)
+        self.login_window = LoginWindow()
+        # login_window.show()
+        self.login_controller = LoginController(self, self.login_window)
+        self.login_window.assign_controller(self.login_controller)
 
-    # project_view_window = ProjectViewWindow()
-    # # project_view_window.show()
-    # project_view_controller = ProjectViewController(project_view_window, async_runner)
+        # navigation_window = NavigationWindow()
+        # # navigation_window.show()
+        # navigation_controller = NavigationController(navigation_window, async_runner)
 
-    return (
-        register_window,
-        # login_window,
-        # navigation_window,
-        # project_view_window
-    ), (
-        register_controller,
-        # login_controller,
-        # navigation_controller,
-        # project_view_controller
-    )
+        # project_view_window = ProjectViewWindow()
+        # # project_view_window.show()
+        # project_view_controller = ProjectViewController(project_view_window, async_runner)
+
+        return (
+            self.register_controller,
+            self.login_controller,
+        )
 
 def main():
-    app = QApplication([])
-    network_manager = QNetworkAccessManager()
-    
-    windows = initialise_windows(app, network_manager)
-    
-    app.exec()
+    app = ClientApplication()
+    app.run()
 
 if __name__ == "__main__":
     main()

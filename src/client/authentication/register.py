@@ -1,26 +1,15 @@
 import os
-import json
 
-from PyQt6.QtWidgets import(
-    QMainWindow,
-    
-)
-from PyQt6 import uic
-from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkAccessManager, QNetworkReply
+from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
 from PyQt6.QtCore import QUrl
 
-import config
+from utils.window.window_base import BaseWindow
+from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data
 
 
-class RegisterWindow(QMainWindow):
-    def __init__(self) -> None:
-        super().__init__()
-        self._load_ui()
-        self._assign_window_properties()
-
-    def _load_ui(self):
-        return uic.load_ui.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\register_window.ui"), self)
+class RegisterWindow(BaseWindow):
+    ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\register_window.ui")
 
     def _assign_window_properties(self):
         self.username_field = self.username_field
@@ -28,19 +17,15 @@ class RegisterWindow(QMainWindow):
         self.password_confirm_field = self.password_confirm_field
         self.register_button = self.register_button
 
-        self.login_text = self.login_text
+        self.login_label = self.login_label
 
         self.error_frame = self.error_frame
         self.error_label = self.error_label
 
-class RegisterController:
+class RegisterController(BaseController):
     """Register controller class."""
-
-    def __init__(self, view: RegisterWindow, network_manager: QNetworkAccessManager):
-        self._view = view
-        self._network_manager = network_manager
-        self._connect_signals()
-        self._setup_endpoints()
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self._view.error_frame.hide()
 
     def _setup_endpoints(self):
@@ -100,6 +85,10 @@ class RegisterController:
         else:
             self.display_error("Passwords do not match.")
         
+    def _switch_to_login(self):
+        self._view.hide()
+        self._client.login_controller.show()
+
     def _connect_signals(self):
         self._view.register_button.clicked.connect(self._on_register)
         self._view.username_field.returnPressed.connect(self._on_register)
@@ -110,3 +99,5 @@ class RegisterController:
         self._view.password_confirm_field.textChanged.connect(self._check_password_confirmation)
 
         self._view.error_label.setWordWrap(True)
+
+        self._view.login_label.clicked.connect(self._switch_to_login)

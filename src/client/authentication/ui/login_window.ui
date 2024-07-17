@@ -916,20 +916,21 @@ color: #3a414a;</string>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="register_text">
+           <widget class="QPushButton" name="register_label">
             <property name="font">
              <font>
               <bold>true</bold>
+              <underline>true</underline>
              </font>
             </property>
             <property name="styleSheet">
              <string notr="true">border: 0px;
 background: #1e2749;
 color: #ffffff;
-qproperty-alignment: AlignLeft;</string>
+text-decoration: underline;</string>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;No account? &lt;span style=&quot; text-decoration: underline;&quot;&gt;Sign up&lt;/span&gt; instead&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>No account? Sign up instead</string>
             </property>
            </widget>
           </item>

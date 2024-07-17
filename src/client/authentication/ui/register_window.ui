@@ -942,20 +942,21 @@ color: #3a414a;</string>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="login_text">
+           <widget class="QPushButton" name="login_label">
             <property name="font">
              <font>
               <bold>true</bold>
+              <underline>true</underline>
              </font>
             </property>
             <property name="styleSheet">
              <string notr="true">border: 0px;
 background: #1e2749;
 color: #ffffff;
-qproperty-alignment: AlignLeft;</string>
+text-decoration: underline;</string>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Or &lt;span style=&quot; text-decoration: underline;&quot;&gt;sign in&lt;/span&gt; instead&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Or sign in instead</string>
             </property>
            </widget>
           </item>
