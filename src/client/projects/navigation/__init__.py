@@ -264,7 +264,7 @@ class ProjectsNavigationController(BaseController):
                 reply.
         """
         if error is QNetworkReply.NetworkError.ContentGoneError:
-            self.logout()
+            self._client.logout()
             create_message_dialog(self._view, "Session expired", "Your session has expired. Please log in again.").exec()
             return
         elif error is QNetworkReply.NetworkError.ProtocolInvalidOperationError:

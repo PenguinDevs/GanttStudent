@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>TaskEditWindow</class>
+ <widget class="QMainWindow" name="TaskEditWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -464,7 +464,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Edit</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLineEdit" name="name_field">
@@ -472,8 +472,8 @@
      <rect>
       <x>150</x>
       <y>30</y>
-      <width>251</width>
-      <height>51</height>
+      <width>250</width>
+      <height>50</height>
      </rect>
     </property>
     <property name="font">
@@ -550,43 +550,6 @@ QLineEdit:focus {
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLineEdit" name="start_field">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>260</y>
-      <width>251</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Segoe UI</family>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLineEdit {
-	border: 2px solid #979ea8;
-	border-radius: 8px;
-	background: #1e2749;
-	color: #ffffff;
-	qproperty-alignment: AlignLeft;
-}
-
-QLineEdit:hover {
-	background: #161d36;
-}
-
-QLineEdit:focus {
-	border: 4px solid #4b4f54;
-	background: #161d36;
-}</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QLabel" name="description_label">
     <property name="geometry">
      <rect>
@@ -615,8 +578,8 @@ QLineEdit:focus {
      <rect>
       <x>150</x>
       <y>90</y>
-      <width>251</width>
-      <height>161</height>
+      <width>250</width>
+      <height>160</height>
      </rect>
     </property>
     <property name="font">
@@ -664,43 +627,6 @@ QTextEdit:focus {
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="end_field">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>320</y>
-      <width>251</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Segoe UI</family>
-      <pointsize>16</pointsize>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QLineEdit {
-	border: 2px solid #979ea8;
-	border-radius: 8px;
-	background: #1e2749;
-	color: #ffffff;
-	qproperty-alignment: AlignLeft;
-}
-
-QLineEdit:hover {
-	background: #161d36;
-}
-
-QLineEdit:focus {
-	border: 4px solid #4b4f54;
-	background: #161d36;
-}</string>
-    </property>
-    <property name="text">
-     <string/>
     </property>
    </widget>
    <widget class="QLabel" name="completed_label">
@@ -1245,6 +1171,136 @@ QLineEdit:focus {
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="create_button">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>600</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Leelawadee</family>
+      <pointsize>15</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+	border: 2px solid #8ee895;
+	border-radius: 5px;
+	background: #c3f7c8;
+	color: #3a414a;
+}
+
+QPushButton:hover {
+	border: 2px solid #77e680;
+	background: #9ce6a3
+}</string>
+    </property>
+    <property name="text">
+     <string>Confirm</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="cancel_button">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>600</y>
+      <width>111</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Leelawadee</family>
+      <pointsize>15</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+	border: 2px solid #ff8f8f;
+	border-radius: 5px;
+	background: #ffd9d9;
+	color: #3a414a;
+}
+
+QPushButton:hover {
+	border: 2px solid #f06969;
+	background: #ffb3b3
+}</string>
+    </property>
+    <property name="text">
+     <string>Cancel</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="start_field">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>260</y>
+      <width>250</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI</family>
+      <pointsize>16</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+	border: 2px solid #979ea8;
+	border-radius: 8px;
+	background: #1e2749;
+	color: #ffffff;
+}
+
+QPushButton:hover {
+	background: #161d36;
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="end_field">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>320</y>
+      <width>250</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Segoe UI</family>
+      <pointsize>16</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+	border: 2px solid #979ea8;
+	border-radius: 8px;
+	background: #1e2749;
+	color: #ffffff;
+}
+
+QPushButton:hover {
+	background: #161d36;
+}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
    </widget>
   </widget>
  </widget>

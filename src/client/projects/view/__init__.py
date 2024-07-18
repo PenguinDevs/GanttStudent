@@ -96,7 +96,7 @@ class ProjectViewController(BaseController):
                 reply.
         """
         if error is QNetworkReply.NetworkError.ContentGoneError:
-            self.logout()
+            self._client.logout()
             create_message_dialog(self._view, "Session expired", "Your session has expired. Please log in again.").exec()
             return
         elif error is QNetworkReply.NetworkError.ProtocolInvalidOperationError:
@@ -115,19 +115,20 @@ class ProjectViewController(BaseController):
         Args:
             task_data (dict): The task data to create the task object from.
         """
+        self.task_edit_controller.reset()
         self.task_edit_window.show()
 
     def create_task(self) -> None:
         """
         Create a new task.
         """
-        self.task_edit_window.show()
+        self._create_task_object({})
 
     def create_milestone(self) -> None:
         """
         Create a new milestone.
         """
-        self.task_edit_window.show()
+        self._create_task_object({})
 
     def reset(self) -> None:
         """

@@ -1,20 +1,20 @@
 """Projects navigation module."""
 
 import os
-import json
+from datetime import datetime, timedelta, timezone
 
 from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
 from PyQt6.QtCore import QUrl
 from PyQt6.QtWidgets import QWidget, QMainWindow, QPushButton
 
-from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data, handle_new_response_payload
-from utils.dialog import create_message_dialog, create_text_input_dialog
+from utils.dialog import create_message_dialog, create_calender_dialog
 
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_projects")
 MAX_PROJECTS_COLUMNS = 3
+DEFAULT_COLOUR = "#ffffff"
 
 
 class TaskEditWindow(QMainWindow):
@@ -39,13 +39,34 @@ class TaskEditController(BaseController):
     def __init__(self, *args, **kwargs) -> None:
         """Class initialisation."""
         super().__init__(*args, **kwargs)
+        self.reset()
+
+    def reset(self) -> None:
+        self.colour = DEFAULT_COLOUR
+        self.start_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
+        self.end_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
+
+        self._view.name_field.clear()
+        self._view.description_field.clear()
+        self._view.incomplete_radio.setChecked(True)
+
         self.colour_buttons()
+        self._display_date_fields()
+
+    def _display_date_fields(self) -> None:
+        self._view.start_field.setText(datetime.fromtimestamp(self.start_date).strftime("%d/%m/%y"))
+        self._view.end_field.setText(datetime.fromtimestamp(self.end_date).strftime("%d/%m/%y"))
+
+    def set_colour(self, colour: str = None) -> None:
+        self._view.task_colour_input.setText(colour)
 
     def colour_buttons(self) -> None:
-        
         for button in self._view.palette_buttons.findChildren(QPushButton):
-            button.setStyleSheet(f"background-color: {button.property('colour')};")
-            # button.clicked.connect(self._set_palette)
+            button_colour = button.property('colour')
+            if self.colour == button_colour:
+                button.setStyleSheet(f"background-color: {button_colour}; border: 2px solid black;")
+            else:
+                button.setStyleSheet(f"background-color: {button_colour};")
 
     def _setup_endpoints(self) -> None:
         self._new_task = QNetworkRequest()
@@ -63,7 +84,7 @@ class TaskEditController(BaseController):
                 reply.
         """
         if error is QNetworkReply.NetworkError.ContentGoneError:
-            self.logout()
+            self._client.logout()
             create_message_dialog(self._view, "Session expired", "Your session has expired. Please log in again.").exec()
             return
         elif error is QNetworkReply.NetworkError.ProtocolInvalidOperationError:
@@ -75,5 +96,64 @@ class TaskEditController(BaseController):
         
         self.fetch_projects()
 
+    def _prompt_calender(self, field: str) -> None:
+        def _set_date(date: datetime):
+            if field == "start":
+                self.start_date = date.timestamp()
+            elif field == "end":
+                self.end_date = date.timestamp()
+
+            self._display_date_fields()
+
+        if field == "start":
+            initial_date = datetime.fromtimestamp(self.start_date)
+        elif field == "end":
+            initial_date = datetime.fromtimestamp(self.end_date)
+        
+        create_calender_dialog(self._view, _set_date, initial_date).exec()
+
+    def _submit_task(self, task_data: dict) -> None:
+        """
+        Submit the task data to the server.
+
+        Args:
+            task_data (dict): The task data to submit.
+        """
+        task_data = {
+            "project_id": self._client.project_view_controller._project_data["id"],
+            "name": self.name_field.text(),
+            "description": self.description_field.text(),
+            "start_date": task_data["start_date"],
+            "end_date": task_data["end_date"],
+            "completed": self.completed_radio.isChecked(),
+            "colour": self.colour
+        }
+
+        self._client.network_manager.post(self._new_task, to_json_data(task_data))
+
+    def _connect_colour_signals(self) -> None:
+        def _button_callback(colour: str):
+            self.colour = colour
+
+            def set_colour():
+                self.colour = colour
+                self.colour_buttons()
+
+            return set_colour
+
+        for button in self._view.palette_buttons.findChildren(QPushButton):
+            button.clicked.connect(_button_callback(button.property("colour")))
+
     def _connect_signals(self) -> None:
-        pass
+        # Bind cancel event.
+        self._view.cancel_button.clicked.connect(self._view.hide)
+
+        # Bind create event.
+        self._view.create_button.clicked.connect(self._submit_task)
+
+        # Bind colour options.
+        self._connect_colour_signals()
+
+        # Bind calender buttons.
+        self._view.start_field.clicked.connect(lambda: self._prompt_calender("start"))
+        self._view.end_field.clicked.connect(lambda: self._prompt_calender("end"))

@@ -63,11 +63,11 @@ class ClientApplication():
         """
         Log the user out, and return them to the login screen.
         """
-        self._client.cache["access_token"] = None
-        self._client.save_cache()
+        self.cache["access_token"] = None
+        self.save_cache()
 
         # Return to login screen.
-        self._client.main_window.login_controller.show()
+        self.main_window.login_controller.show()
     
     def exit(self):
         self.app.quit()

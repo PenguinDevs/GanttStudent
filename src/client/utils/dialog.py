@@ -1,5 +1,7 @@
 """Dialog popups for the client application."""
+from datetime import datetime
 
+from PyQt6.QtCore import QDate
 from PyQt6.QtWidgets import(
     QWidget,
     QDialog,
@@ -7,6 +9,7 @@ from PyQt6.QtWidgets import(
     QVBoxLayout,
     QPushButton,
     QLineEdit,
+    QCalendarWidget,
 )
 
 def create_message_dialog(parent: QWidget, title: str, message: str, button_message: str = 'Ok') -> QDialog:
@@ -81,5 +84,55 @@ def create_text_input_dialog(parent: QWidget, callback, title: str, placeholder:
     # Bind the button to close the dialog.
     line_edit.returnPressed.connect(close_dialog)
     button.clicked.connect(close_dialog)
+    
+    return dialog
+
+def create_calender_dialog(parent: QWidget, callback, initial_date: datetime) -> QDialog:
+    """
+    Create a calender dialog for selecting a date.
+
+    Args:
+        parent (QWidget): The parent widget for the dialog.
+        callback (function): The function to call when a date is selected.
+
+    Returns:
+        QDialog: The calender dialog.
+    """
+    dialog = QDialog(parent)
+    dialog.setWindowTitle("Select a date")
+
+    # Convert the initial date to a QDate object.
+    initial_date_qdate = QDate()
+    initial_date_qdate.setDate(initial_date.year, initial_date.month, initial_date.day)
+
+    # Create a calender widget.
+    calender = QCalendarWidget()
+    calender.setSelectedDate(initial_date_qdate)
+
+    # Create buttons.
+    confirm_button = QPushButton("Confirm")
+    cancel_button = QPushButton("Cancel")
+
+    # Create a layout for the dialog.
+    dialog_layout = QVBoxLayout()
+    dialog_layout.addWidget(calender)
+    dialog_layout.addWidget(confirm_button)
+    dialog_layout.addWidget(cancel_button)
+
+    dialog.setLayout(dialog_layout)
+
+    def close_dialog(override_date: datetime = None):
+        if override_date is None:
+            selected_date = calender.selectedDate()
+            callback(datetime(selected_date.year(), selected_date.month(), selected_date.day()))
+        else:
+            callback(override_date)
+        dialog.close()
+
+    # Bind the button to close the dialog.
+    # Return the new date if confirmed.
+    confirm_button.clicked.connect(lambda: close_dialog())
+    # Return the same date that was given if cancelled.
+    cancel_button.clicked.connect(lambda: close_dialog(initial_date))
     
     return dialog
