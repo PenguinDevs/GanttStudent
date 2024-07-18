@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone
 import PyQt6.QtCore as QtCore
 from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
-from PyQt6.QtCore import Qt, QUrl, QMimeData, pyqtSignal
-from PyQt6.QtGui import QAction, QPixmap, QDrag, QDragMoveEvent, QDragEnterEvent, QDragLeaveEvent, QDropEvent, QMouseEvent, QPainter, QBrush, QPen
+from PyQt6.QtCore import Qt, QUrl, QMimeData, pyqtSignal, QPoint
+from PyQt6.QtGui import QAction, QPixmap, QDrag, QDragMoveEvent, QDragEnterEvent, QDragLeaveEvent, QDropEvent, QMouseEvent, QFont, QPainter, QPolygon, QPaintEvent, QBrush, QColor, QPen
 from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame, QGridLayout
 
 from .task_edit import TaskEditWindow, TaskEditController
@@ -23,6 +23,9 @@ TEMPLATE_ROWS = 30
 CELL_WIDTH = 80
 CELL_HEIGHT = 35
 
+EVEN_COLUMN_COLOUR = "#0f1425"
+ODD_COLUMN_COLOUR = "#222b4e"
+
 class ProjectViewPage(BasePage):
     ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\project_view_page.ui")
 
@@ -31,29 +34,51 @@ class ProjectViewPage(BasePage):
 
         self._setup_drag_area()
 
+    def assign_controller(self, controller: BaseController) -> None:
+        super().assign_controller(controller)
+
+        self.drag_area.grid_updated.connect(self._controller.grid_updated)
+
     def _setup_drag_area(self) -> None:
-        self.drag_area = DragWidget(self)
+        self.drag_area = DragWidget(self.timeline_scroll_area)
         self.timeline_scroll_area.layout().addWidget(self.drag_area, 0, 0)
+
+    def setup_task_rows(self) -> None:
+        for i in range(TEMPLATE_ROWS):
+            row_label = QFrame(self)
+            row_label.setMaximumSize(400, 35)
+            row_label.setMinimumSize(400, 35)
+            row_label.setStyleSheet(
+                """
+                background: #1e2749;
+                """
+            )
+
+            self.tasks_frame.layout().addWidget(row_label, i+1, 0)
 
     def setup_timeline_dates(self, start_date: datetime, end_date: datetime) -> None:
         total_columns = (end_date - start_date).days + 1
 
+        font = QFont()
+        font.setBold(True)
+        font.setFamily("Segoe Ui")
+        font.setPixelSize(14)
         for day in range(total_columns):
             day_label = QLabel(self)
             day_label.setText((start_date + timedelta(days=day)).strftime("%d %b"))
             day_label.setStyleSheet(
-                """
+                f"""
                 border: 2px solid #979ea8;
-                background: #0f1425;
+                background: {EVEN_COLUMN_COLOUR};
                 color: #ffffff;
                 qproperty-alignment: AlignCenter;
                 """
             )
+            day_label.setFont(font)
             day_label.setMaximumSize(CELL_WIDTH, CELL_HEIGHT)
             day_label.setMinimumSize(CELL_WIDTH, CELL_HEIGHT)
 
             self.drag_area.layout().addWidget(day_label, 0, day)
-        
 
     def setup_timeline(self, start_date: datetime, end_date: datetime) -> None:
         total_columns = (end_date - start_date).days + 1
@@ -61,9 +86,9 @@ class ProjectViewPage(BasePage):
         for i in range(total_columns):
             column_frame = QFrame(self)
             if i % 2 == 0:
-                column_frame.setStyleSheet("background: #0f1425;")
+                column_frame.setStyleSheet(f"background: {EVEN_COLUMN_COLOUR};")
             else:
-                column_frame.setStyleSheet("background: #222b4e;")
+                column_frame.setStyleSheet(f"background: {ODD_COLUMN_COLOUR};")
 
             self.drag_area.layout().addWidget(column_frame, 1, i, 100, 1)
 
@@ -71,8 +96,8 @@ class ProjectViewPage(BasePage):
             row_label = QLabel(self)
             row_label.setText(f"Row {i}")
             row_label.setStyleSheet(
-                """
-                background: #0f1425;
+                f"""
+                background: {EVEN_COLUMN_COLOUR};
                 """
             )
             row_label.setMaximumSize(80, 35)
@@ -134,12 +159,15 @@ class ProjectViewController(BaseController):
         self.task_edit_window = TaskEditWindow(self._view)
         self.task_edit_controller = TaskEditController(self._client, self.task_edit_window)
 
+        self._task_items = {}
+        self._row_items = {}
+
         self.reset()
 
     def _setup_endpoints(self) -> None:
-        self._new_task = QNetworkRequest()
-        self._new_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/fetch-all"))
-        self._new_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
+        self._fetch_all_tasks = QNetworkRequest()
+        self._fetch_all_tasks.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/fetch-all"))
+        self._fetch_all_tasks.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
     
     def _handle_error(self, reply: QNetworkReply, error: QNetworkReply.NetworkError) -> None:
         """
@@ -182,6 +210,22 @@ class ProjectViewController(BaseController):
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
         self._tasks = payload["tasks"]
+
+        if self.start_date is None or self.end_date is None:
+            minimim_latest = datetime(*datetime.now(timezone.utc).timetuple()[:3]) + timedelta(weeks=12)
+            if len(self._tasks) == 0:
+                self.start_date = datetime(*datetime.now(timezone.utc).timetuple()[:3])
+                self.end_date =  minimim_latest
+            else:
+                self.start_date = datetime.fromtimestamp(min([task["start_date"] for task in self._tasks.values()]))
+                self.end_date = datetime.fromtimestamp(max([max(minimim_latest.timestamp(), task["end_date"]) for task in self._tasks.values()]))
+
+            # A part of the render() method.
+            self._view.setup_task_rows()
+            self._view.setup_timeline(self.start_date, self.end_date)
+            self._view.drag_area.setup_drag_indicator()
+            self._view.setup_timeline_dates(self.start_date, self.end_date)
+
         self.render()
 
     def fetch_tasks(self) -> None:
@@ -189,7 +233,7 @@ class ProjectViewController(BaseController):
         Fetch all tasks for the project.
         """
         reply: QNetworkReply = self._client.network_manager.post(
-            self._new_task,
+            self._fetch_all_tasks,
             to_json_data(
                 {
                     "project_uuid": self._project_data["_id"],
@@ -225,21 +269,61 @@ class ProjectViewController(BaseController):
         """
         Reset the data held in the controller.
         """
-        self._task_items = {}
-
         self._project_data = None
         self._tasks = {}
+        
+        self.start_date = None
+        self.end_date = None
+
+        for item in self._task_items.values():
+            self._view.drag_area.grid_layout.removeWidget(item)
+            item.deleteLater()
+            del item
+        self._task_items = {}
+
+        for item in self._row_items.values():
+            self._view.tasks_frame.layout().removeWidget(item)
+            item.deleteLater()
+            del item
+        self._row_items = {}
+        
+        item = self._view.drag_area.findChild(DragWidget)
+        if item:
+            self._view.timeline_scroll_area.removeWidget(item)
+            item.deleteLater()
+            del item
 
     def render(self) -> None:
         """
         Render the project view.
         """
         for task_uuid, task in self._tasks.items():
-            if task_uuid not in self._task_items.keys():
-                days = (datetime.fromtimestamp(task["end_date"]) - datetime.fromtimestamp(task["start_date"])).days
-                self._task_items[task_uuid] = TimelineItem(task_uuid, task["name"], task["colour"], parent=self._view.drag_area)
-                self._view.drag_area.add_item(self._task_items[task_uuid], 1, 1, 1, days)
+            start_column = (datetime.fromtimestamp(task["start_date"]) - self.start_date).days
+            end_column = (datetime.fromtimestamp(task["end_date"]) - self.start_date).days
+
+            if start_column < 0:
+                project_data = self._project_data
+                self.reset()
+                return self.load(project_data)
+
+            days = end_column - start_column
+            if not task_uuid in self._task_items.keys():
+                class_type = TimelineMilestoneItem if task["task_type"] == "milestone" else TimelineTaskItem
+                self._task_items[task_uuid] = class_type(task_uuid, task["name"], task["colour"], parent=self._view.drag_area)
+                self._view.drag_area.add_item(self._task_items[task_uuid], task["row"]+1, start_column, 1, days)
                 self._task_items[task_uuid].show()
+            else:
+                self._view.drag_area.grid_layout.addWidget(self._task_items[task_uuid], task["row"]+1, start_column, 1, days)
+            
+            
+            if not task_uuid in self._row_items.keys():
+                self._row_items[task_uuid] = RowLabel(parent=self._view.drag_area)
+                self._row_items[task_uuid].show()
+            self._row_items[task_uuid].set_task_data(task["name"], datetime.fromtimestamp(task["start_date"]), datetime.fromtimestamp(task["end_date"]))
+            self._view.tasks_frame.layout().addWidget(self._row_items[task_uuid], task["row"]+1, 0)
+
+        self._view.drag_area.max_rows = len(self._tasks)
+        self._view.drag_area._drag_target_indicator.raise_()
 
     def load(self, project_data: dict) -> None:
         """
@@ -253,23 +337,49 @@ class ProjectViewController(BaseController):
 
         self.fetch_tasks()
 
-        if len(self._tasks) == 0:
-            earliest_task_time = datetime(*datetime.now(timezone.utc).timetuple()[:3])
-            latest_task_time =  datetime(*datetime.now(timezone.utc).timetuple()[:3]) + timedelta(weeks=12)
-        else:
-            earliest_task_time = datetime.fromtimestamp(min([task["start_date"] for task in self._tasks.values()]))
-            latest_task_time = datetime.fromtimestamp(max([task["end_date"] for task in self._tasks.values()]))
-        
-        self._view.setup_timeline(earliest_task_time, latest_task_time)
-        self._view.drag_area.setup_drag_indicator()
-        self._view.setup_timeline_dates(earliest_task_time, latest_task_time)
-
     def close(self) -> None:
         """
         Close the project view.
         """
         self._client.main_window.navigation_controller.show()
         self.reset()
+
+    def grid_updated(self, data: list) -> None:
+        """
+        A callback function for when the grid is updated.
+
+        Args:
+            data (list): The data from the grid update.
+                i=0: Widget object.
+                i=1: New row.
+                i=2: New column.
+                i=3: New cell height.
+                i=4: New cell width.
+        """
+        item, row, column, cell_height, cell_width = data
+        if isinstance(item, TimelineTaskItem) or isinstance(item, TimelineMilestoneItem):
+            task_uuid = item.task_uuid
+            task = self._tasks[task_uuid]
+            new_row = row - 1
+
+            for other_task in self._tasks.values():
+                if other_task["row"] == row - 1 and not other_task == task:
+                    other_task["row"] = task["row"]
+                    self.task_edit_controller.update_task(other_task)
+                    break
+            
+            task["row"] = new_row
+
+            task["start_date"] = (self.start_date + timedelta(days=column)).timestamp()
+            task["end_date"] = (self.start_date + timedelta(days=column + cell_width)).timestamp()
+
+            self.task_edit_controller.update_task(task)
+            self.render()
+            
+
+    def move_scrollbar(self, value: int) -> None:
+        self._view.tasks.verticalScrollBar().setValue(value)
+        self._view.timeline.verticalScrollBar().setValue(value)
 
     def _connect_signals(self) -> None:
         # Bind menu bar actions.
@@ -286,10 +396,30 @@ class ProjectViewController(BaseController):
         self._view.add_task_button.clicked.connect(self.create_task)
         self._view.add_milestone_button.clicked.connect(self.create_milestone)
 
+        # Syncing scrollbars
+        self._view.tasks.verticalScrollBar().valueChanged.connect(self.move_scrollbar)
+        self._view.timeline.verticalScrollBar().valueChanged.connect(self.move_scrollbar)
+
+class RowLabel(QFrame):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self._load_ui()
+
+    def _load_ui(self) -> None:
+        uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\project_view_task_item.ui"), self)
+        
+    def set_task_data(self, name: str, start: datetime, end: datetime) -> None:
+        self.name_label.setText(name)
+        self.start_label.setText(start.strftime("%d/%m"))
+        self.end_label.setText(end.strftime("%d/%m"))
+
 class DragWidget(QWidget):
     """
     Generic grid dragging handler.
     """
+
+    max_rows = 1
 
     grid_updated = pyqtSignal(list)
 
@@ -346,8 +476,8 @@ class DragWidget(QWidget):
             # Inserting moves the item, even if its already in the layout.
             self.grid_layout.addWidget(
                 self._drag_target_indicator,
-                row,
-                column+offset_cells_column,
+                min(self.max_rows, row),
+                max(0, column+offset_cells_column),
                 cell_height,
                 cell_width
             )
@@ -370,7 +500,7 @@ class DragWidget(QWidget):
             self._widget.show()
 
             # Fire signal for grid update.
-            self.grid_updated.emit([self._widget, row, column])
+            self.grid_updated.emit([self._widget, row, column, cell_height, cell_width])
 
             # Update the grid.
             self.grid_layout.activate()
@@ -393,6 +523,12 @@ class DragWidget(QWidget):
 
     def add_item(self, item: QWidget, row: int = 1, column: int = 1, cell_height: int = 1, cell_width: int = 1) -> None:
         self.grid_layout.addWidget(item, row, column, cell_height, cell_width)
+
+        if isinstance(item, TimelineMilestoneItem):
+            if column % 2 == 0:
+                item.set_background_colour(EVEN_COLUMN_COLOUR)
+            else:
+                item.set_background_colour(ODD_COLUMN_COLOUR)
 
 class DragTargetIndicator(QLabel):
     def __init__(self, parent = None) -> None:
@@ -435,6 +571,9 @@ class DragItem(QLabel):
 
         self.offset = None
         self.parent_widget = self.parentWidget()
+
+        if isinstance(self, TimelineMilestoneItem):
+            self.cursors = {}
 
         # Mandatory for cursor updates.
         self.setMouseTracking(True)
@@ -493,8 +632,14 @@ class DragItem(QLabel):
             drag.setPixmap(pixmap)
 
             drag.exec(Qt.DropAction.MoveAction)
-            if isinstance(self, TimelineItem):
+            if isinstance(self, TimelineTaskItem):
                 self.reset_style_sheet()
+            elif isinstance(self, TimelineMilestoneItem):
+                _, column, _, _ = self.parent_widget.grid_layout.getItemPosition(self.parent_widget.grid_layout.indexOf(self))
+                if column % 2 == 0:
+                    self.set_background_colour(EVEN_COLUMN_COLOUR)
+                else:
+                    self.set_background_colour(ODD_COLUMN_COLOUR)
             self.show() # Show this widget again, if it's dropped outside.
 
         super().mouseMoveEvent(mouse_event)
@@ -502,7 +647,7 @@ class DragItem(QLabel):
     
     def updateCursor(self, position: QtCore.QPoint) -> None:
         for section, rect in self.rects.items():
-            if position in rect:
+            if position in rect and not self.cursors.get(section) is None:
                 self.setCursor(self.cursors[section])
                 self.section = section
                 return section
@@ -523,7 +668,9 @@ class DragItem(QLabel):
         super().mouseReleaseEvent(mouse_event)
         self.updateCursor(mouse_event.pos())
         self._start_pos = self.section = None
-        self.setMinimumSize(0, 0)
+
+        row, column, cell_height, cell_width = self.parent_widget.grid_layout.getItemPosition(self.parent_widget.grid_layout.indexOf(self))        
+        self.parent_widget.grid_updated.emit([self, row, column, cell_height, cell_width])
 
     def resizeEvent(self, mouse_event: QMouseEvent) -> None:
         super().resizeEvent(mouse_event)
@@ -532,11 +679,16 @@ class DragItem(QLabel):
         self.rects[POS_LEFT] = QtCore.QRect(outRect.left(), inRect.top(), self.resize_margin, inRect.height())
         self.rects[POS_RIGHT] = QtCore.QRect(inRect.right(), self.resize_margin, self.resize_margin, inRect.height())
 
-class TimelineItem(DragItem):
+    # def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+    #     if isinstance(self, TimelineTaskItem):
+    #         self.parent_widget.grid_layout.removeWidget(self)
+    #         self.deleteLater()
+
+class TimelineTaskItem(DragItem):
     def __init__(self, task_uuid: str, task_name: str, colour: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self._task_uuid = task_uuid
+        self.task_uuid = task_uuid
         self._task_name = task_name
         self._colour = colour
         
@@ -568,3 +720,46 @@ class TimelineItem(DragItem):
         self.reset_style_sheet()
 
         super().mouseReleaseEvent(mouse_event)
+
+class TimelineMilestoneItem(DragItem):
+    def __init__(self, task_uuid: str, task_name: str, colour: str, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.task_uuid = task_uuid
+        self._task_name = task_name
+        self._colour = colour
+        
+        self.set_background_colour("#1e2749")
+        self.setMinimumSize(CELL_WIDTH, CELL_HEIGHT)
+        self.setToolTip(task_name)
+
+    def set_background_colour(self, colour: str) -> None:
+        self.setStyleSheet(
+            f"""
+            background: {colour};
+            """
+        )
+
+    def paintEvent(self, paint_event: QPaintEvent) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Define the points for a diamond shape based on the button's current size
+        points = [
+            QPoint(self.width() // 2, 0),
+            QPoint(self.width(), self.height() // 2),
+            QPoint(self.width() // 2, self.height()),
+            QPoint(0, self.height() // 2)
+        ]
+        
+        # Set the pen to transparent to remove the outline
+        painter.setPen(QPen(Qt.GlobalColor.transparent))
+        
+        # Draw the diamond shape with a specific color
+        polygon = QPolygon(points)
+        painter.setBrush(QBrush(QColor(self._colour)))  # Set the brush to a specific color
+        painter.drawPolygon(polygon)
+
+        # Set the pen for the text
+        painter.setPen(self.palette().buttonText().color())
+        painter.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, self.text())

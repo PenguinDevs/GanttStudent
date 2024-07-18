@@ -2,6 +2,7 @@
 
 import os
 import json
+import time
 from dotenv import load_dotenv
 
 from PyQt6 import uic, QtWidgets
@@ -23,6 +24,7 @@ from projects.view import ProjectViewPage, ProjectViewController
 load_dotenv()
 
 CACHE_PATH = "cache.json"
+MIN_CACHE_SAVE_INTERVAL = 5
 
 
 class ClientApplication():
@@ -32,6 +34,7 @@ class ClientApplication():
 
         self._setup_windows()
         self.load_cache()
+        self.last_file_save = 0
         if self.cache["access_token"] is None:
             self.main_window.login_controller.show()
         else:
@@ -49,8 +52,14 @@ class ClientApplication():
             self.cache = json.load(file)
 
     def save_cache(self):
-        with open(CACHE_PATH, "w") as file:
-            json.dump(self.cache, file)
+        if time.time() - self.last_file_save < MIN_CACHE_SAVE_INTERVAL:
+            return
+        try:
+            with open(CACHE_PATH, "w") as file:
+                json.dump(self.cache, file)
+                self.last_file_save = time.time()
+        except Exception as e:
+            print(f"Failed to save cache: {e}")
 
     def switch_to(self, page: QWidget) -> None:
         return self.main_window.switch_to(page)

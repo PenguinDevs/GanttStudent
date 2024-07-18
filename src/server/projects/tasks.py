@@ -20,7 +20,7 @@ class TasksRoute(WebAppRoutes):
 
     routes = web.RouteTableDef()
 
-    @routes.put("/project/task/new-task")
+    @routes.put("/project/task/new")
     async def new_task(request: web.Request) -> web.Response:
         """
         Create a new task using a given name for a given project.
@@ -85,7 +85,10 @@ class TasksRoute(WebAppRoutes):
             if task_data is None:
                 break
         
+        total_tasks = await server.db.count("projects", "tasks", {"project_uuid": body["project_uuid"]})
+
         task_data = body["task_data"]
+        task_data["row"] = total_tasks
         task_data["task_uuid"] = uuid
         task_data["project_uuid"] = project_uuid
         task_data["_id"] = f"{uuid}_{project_uuid}"
@@ -124,6 +127,7 @@ class TasksRoute(WebAppRoutes):
             "task_uuid": (str, 36, 36),
             "project_uuid": (str, 36, 36),
             "task_type": (str, 4, 9),
+            "row": (int,),
             "name": (str, 1, 20),
             "description": (str, 0, 1024),
             "start_date": (int,),

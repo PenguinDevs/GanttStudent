@@ -155,7 +155,8 @@ class ProjectsNavigationController(BaseController):
             item = self._view.scroll_body.findChild(QWidget, uuid)
             if item:
                 self._view.scroll_body.layout().removeWidget(item)
-                item.hide()
+                item.deleteLater()
+                del item
         
         sorted_projects = sorted(projects.items(), key=lambda x: x[1]["updated_at"], reverse=True)
 

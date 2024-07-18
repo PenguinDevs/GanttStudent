@@ -52,12 +52,22 @@ class TaskEditController(BaseController):
             completed: bool = None,
     ) -> None:
         self.task_type = task_type
-        if task_type == "task":
+        if self.task_type == "task":
             self._view.setWindowTitle("Edit task")
             self._view.name_label.setText("Task:")
-        elif task_type == "milestone":
+            self._view.end_label.show()
+            self._view.end_field.show()
+            self._view.completed_radio.show()
+            self._view.incomplete_radio.show()
+            self._view.completed_label.show()
+        elif self.task_type == "milestone":
             self._view.setWindowTitle("Edit milestone")
             self._view.name_label.setText("Milestone:")
+            self._view.end_label.hide()
+            self._view.end_field.hide()
+            self._view.completed_radio.hide()
+            self._view.incomplete_radio.hide()
+            self._view.completed_label.hide()
 
         self.colour = colour or DEFAULT_COLOUR
         self.start_date = start_date or datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
@@ -87,8 +97,12 @@ class TaskEditController(BaseController):
 
     def _setup_endpoints(self) -> None:
         self._new_task = QNetworkRequest()
-        self._new_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/new-task"))
+        self._new_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/new"))
         self._new_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
+
+        self._update_task = QNetworkRequest()
+        self._update_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/update"))
+        self._update_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
     
     def _handle_error(self, reply: QNetworkReply, error: QNetworkReply.NetworkError) -> None:
         """
@@ -111,22 +125,6 @@ class TaskEditController(BaseController):
         else:
             create_message_dialog(self._view, "Error", "An error occurred. Please try again.").exec()
 
-    def _prompt_calender(self, field: str) -> None:
-        def _set_date(date: datetime):
-            if field == "start":
-                self.start_date = date.timestamp()
-            elif field == "end":
-                self.end_date = date.timestamp()
-
-            self._display_date_fields()
-
-        if field == "start":
-            initial_date = datetime.fromtimestamp(self.start_date)
-        elif field == "end":
-            initial_date = datetime.fromtimestamp(self.end_date)
-        
-        create_calender_dialog(self._view, _set_date, initial_date).exec()
-
     def _on_new_task_response(self, reply: QNetworkReply) -> None:
         """
         A callback function for when a new task is added.
@@ -142,15 +140,13 @@ class TaskEditController(BaseController):
 
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
-        self._view.hide()
+        if self._view.isVisible():
+            self._view.hide()
         self._client.main_window.project_view_controller.fetch_tasks()
     
-    def _submit_task(self, task_data: dict) -> None:
+    def _submit_task(self) -> None:
         """
         Submit the task data to the server.
-
-        Args:
-            task_data (dict): The task data to submit.
         """
         task_data = {
             "task_type": self.task_type,
@@ -174,6 +170,63 @@ class TaskEditController(BaseController):
             )
         )
         reply.finished.connect(lambda: self._on_new_task_response(reply))
+
+    def _on_task_updated_response(self, reply: QNetworkReply) -> None:
+        """
+        A callback function for when a new task is added.
+
+        Args:
+            reply (QNetworkReply): The reply object from the server.
+        """
+        # Do not proceed if there was an error.
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            return self._handle_error(reply, reply.error())
+        
+        reply.deleteLater()
+
+        payload = get_json_from_reply(reply)
+        handle_new_response_payload(self._client, payload)
+        if self._view.isVisible():
+            self._view.hide()
+    
+    def update_task(self, task_data: dict) -> None:
+        """
+        Submit the task data to the server.
+
+        Args:
+            task_data (dict): The task data to submit.
+        """
+        reply: QNetworkReply = self._network_manager.post(
+            self._update_task,
+            to_json_data(
+                {
+                    "access_token": self._client.cache["access_token"],
+                    "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
+                    "task_data": task_data
+                }
+            )
+        )
+        reply.finished.connect(lambda: self._on_task_updated_response(reply))
+
+    def _prompt_calender(self, field: str) -> None:
+        def _set_date(date: datetime):
+            if field == "start":
+                self.start_date = date.timestamp()
+                if self.end_date < self.start_date:
+                    self.end_date = self.start_date + timedelta(days=1).total_seconds()
+            elif field == "end":
+                self.end_date = date.timestamp()
+                if self.end_date < self.start_date:
+                    self.start_date = self.end_date - timedelta(days=1).total_seconds()
+
+            self._display_date_fields()
+
+        if field == "start":
+            initial_date = datetime.fromtimestamp(self.start_date)
+        elif field == "end":
+            initial_date = datetime.fromtimestamp(self.end_date)
+        
+        create_calender_dialog(self._view, _set_date, initial_date).exec()
 
     def _connect_colour_signals(self) -> None:
         def _button_callback(colour: str):
