@@ -59,7 +59,6 @@ class ProjectsRoute(WebAppRoutes):
             "admin": body["username"],
             "created_at": datetime.now(timezone.utc).timestamp(),
             "updated_at": datetime.now(timezone.utc).timestamp(),
-            "tasks": [],
             "invitees": [],
         }
 
@@ -102,7 +101,7 @@ class ProjectsRoute(WebAppRoutes):
         # Find the project.
         project_data = await server.db.read("projects", "project_data", {"_id": uuid, "admin": body["username"]})
         if project_data is None:
-            return server.json_payload_response(404, {"message": "Project not found."})
+            return server.json_payload_response(404, {"message": "Project not found or you do not have permissions to do this."})
 
         project_data['name'] = name
         project_data['updated_at'] = datetime.now(timezone.utc).timestamp()
@@ -143,10 +142,12 @@ class ProjectsRoute(WebAppRoutes):
         # Find the project.
         project_data = await server.db.read("projects", "project_data", {"_id": uuid, "admin": body["username"]})
         if project_data is None:
-            return server.json_payload_response(404, {"message": "Project not found."})
+            return server.json_payload_response(404, {"message": "Project not found or you do not have permissions to do this."})
         
         # Delete the project.
         await server.db.erase("projects", "project_data", {"_id": uuid})
+        # Delete its tasks.
+        server.db.erase("projects", "tasks", {"project_uuid": uuid})
 
         return server.json_payload_response(200, {
             "message": "Project deleted.",

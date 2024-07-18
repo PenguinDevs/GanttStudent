@@ -87,7 +87,7 @@ class TaskEditController(BaseController):
 
     def _setup_endpoints(self) -> None:
         self._new_task = QNetworkRequest()
-        self._new_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/edit/task/new-task"))
+        self._new_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/new-task"))
         self._new_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
     
     def _handle_error(self, reply: QNetworkReply, error: QNetworkReply.NetworkError) -> None:
@@ -141,8 +141,9 @@ class TaskEditController(BaseController):
         reply.deleteLater()
 
         payload = get_json_from_reply(reply)
-        print(payload)
         handle_new_response_payload(self._client, payload)
+        self._view.hide()
+        self._client.main_window.project_view_controller.fetch_tasks()
     
     def _submit_task(self, task_data: dict) -> None:
         """
