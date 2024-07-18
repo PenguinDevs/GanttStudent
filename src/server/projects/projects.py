@@ -147,7 +147,7 @@ class ProjectsRoute(WebAppRoutes):
         # Delete the project.
         await server.db.erase("projects", "project_data", {"_id": uuid})
         # Delete its tasks.
-        server.db.erase("projects", "tasks", {"project_uuid": uuid})
+        await server.db.erase("projects", "tasks", {"project_uuid": uuid})
 
         return server.json_payload_response(200, {
             "message": "Project deleted.",
