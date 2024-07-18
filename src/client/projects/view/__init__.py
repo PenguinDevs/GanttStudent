@@ -77,8 +77,7 @@ class ProjectViewController(BaseController):
         self.task_edit_window = TaskEditWindow(self._view)
         self.task_edit_controller = TaskEditController(self._client, self.task_edit_window)
 
-        self._tasks = {}
-        self._milestones = {}
+        self.reset()
 
     def _setup_endpoints(self) -> None:
         self._new_task = QNetworkRequest()
@@ -108,33 +107,34 @@ class ProjectViewController(BaseController):
         
         self.fetch_projects()
 
-    def _create_task_object(self, task_data: dict) -> None:
+    def _create_task_object(self, task_type: str) -> None:
         """
         Create a task object from the task data.
 
         Args:
             task_data (dict): The task data to create the task object from.
         """
-        self.task_edit_controller.reset()
+        self.task_edit_controller.reset(task_type)
         self.task_edit_window.show()
 
     def create_task(self) -> None:
         """
         Create a new task.
         """
-        self._create_task_object({})
+        self._create_task_object("task")
 
     def create_milestone(self) -> None:
         """
         Create a new milestone.
         """
-        self._create_task_object({})
+        self._create_task_object("milestone")
 
     def reset(self) -> None:
         """
-        Reset the controller.
+        Reset the data held in the controller.
         """
         self._project_data = None
+        self._tasks = {}
 
     def load(self, project_data: dict) -> None:
         """

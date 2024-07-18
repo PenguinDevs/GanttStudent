@@ -41,7 +41,7 @@ class ProjectsRoute(WebAppRoutes):
 
         project_name = body["project_name"]
         # Validation checks.
-        if project_name == '':
+        if project_name == "":
             return server.json_payload_response(400, {"message": "Project name cannot be empty."})
         elif len(project_name) > 50:
             return server.json_payload_response(400, {"message": "Project name must be 50 characters or less."})

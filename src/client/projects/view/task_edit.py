@@ -41,14 +41,31 @@ class TaskEditController(BaseController):
         super().__init__(*args, **kwargs)
         self.reset()
 
-    def reset(self) -> None:
-        self.colour = DEFAULT_COLOUR
-        self.start_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
-        self.end_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
+    def reset(
+            self,
+            task_type: str = "task",
+            colour: str = None,
+            start_date: int = None,
+            end_date: int = None,
+            name: str = None,
+            description: str = None,
+            completed: bool = None,
+    ) -> None:
+        self.task_type = task_type
+        if task_type == "task":
+            self._view.setWindowTitle("Edit task")
+            self._view.name_label.setText("Task:")
+        elif task_type == "milestone":
+            self._view.setWindowTitle("Edit milestone")
+            self._view.name_label.setText("Milestone:")
 
-        self._view.name_field.clear()
-        self._view.description_field.clear()
-        self._view.incomplete_radio.setChecked(True)
+        self.colour = colour or DEFAULT_COLOUR
+        self.start_date = start_date or datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
+        self.end_date = end_date or datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
+
+        self._view.name_field.setText(name or "")
+        self._view.description_field.setText(description or "")
+        self._view.completed_radio.setChecked(False if completed is None else completed)
 
         self.colour_buttons()
         self._display_date_fields()
@@ -90,11 +107,9 @@ class TaskEditController(BaseController):
         elif error is QNetworkReply.NetworkError.ProtocolInvalidOperationError:
             create_message_dialog(self._view, "Error", get_json_from_reply(reply)["message"]).exec()
         elif error is QNetworkReply.NetworkError.ContentNotFoundError:
-            create_message_dialog(self._view, "Error", "The project could not be found.").exec()
+            create_message_dialog(self._view, "Error", "The task could not be found.").exec()
         else:
             create_message_dialog(self._view, "Error", "An error occurred. Please try again.").exec()
-        
-        self.fetch_projects()
 
     def _prompt_calender(self, field: str) -> None:
         def _set_date(date: datetime):
@@ -112,6 +127,23 @@ class TaskEditController(BaseController):
         
         create_calender_dialog(self._view, _set_date, initial_date).exec()
 
+    def _on_new_task_response(self, reply: QNetworkReply) -> None:
+        """
+        A callback function for when a new task is added.
+
+        Args:
+            reply (QNetworkReply): The reply object from the server.
+        """
+        # Do not proceed if there was an error.
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            return self._handle_error(reply, reply.error())
+        
+        reply.deleteLater()
+
+        payload = get_json_from_reply(reply)
+        print(payload)
+        handle_new_response_payload(self._client, payload)
+    
     def _submit_task(self, task_data: dict) -> None:
         """
         Submit the task data to the server.
@@ -120,16 +152,27 @@ class TaskEditController(BaseController):
             task_data (dict): The task data to submit.
         """
         task_data = {
-            "project_id": self._client.project_view_controller._project_data["id"],
-            "name": self.name_field.text(),
-            "description": self.description_field.text(),
-            "start_date": task_data["start_date"],
-            "end_date": task_data["end_date"],
-            "completed": self.completed_radio.isChecked(),
-            "colour": self.colour
+            "task_type": self.task_type,
+            "name": self._view.name_field.text(),
+            "description": self._view.description_field.toPlainText(),
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "completed": self._view.completed_radio.isChecked(),
+            "colour": self.colour,
+            "dependencies": [],
         }
 
-        self._client.network_manager.post(self._new_task, to_json_data(task_data))
+        reply: QNetworkReply = self._network_manager.put(
+            self._new_task,
+            to_json_data(
+                {
+                    "access_token": self._client.cache["access_token"],
+                    "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
+                    "task_data": task_data
+                }
+            )
+        )
+        reply.finished.connect(lambda: self._on_new_task_response(reply))
 
     def _connect_colour_signals(self) -> None:
         def _button_callback(colour: str):

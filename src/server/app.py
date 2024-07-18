@@ -9,6 +9,7 @@ from db import MongoDB
 from authentication.register import RegisterRoute
 from authentication.login import LoginRoute
 from projects.projects import ProjectsRoute
+from projects.tasks import TasksRoute
 
 load_dotenv()
 
@@ -46,6 +47,7 @@ if __name__ == "__main__":
         RegisterRoute,
         LoginRoute,
         ProjectsRoute,
+        TasksRoute,
     ], db)
 
     # This runs indefinitely until the server is forcefully stopped.

@@ -202,7 +202,10 @@ class ProjectsNavigationController(BaseController):
         deleted = []
         for uuid, project_data in self.projects.items():
             if not uuid in server_projects.keys():
-                os.remove(os.path.join(PROJECTS_DIR, f"{uuid}.json"))
+                try:
+                    os.remove(os.path.join(PROJECTS_DIR, f"{uuid}.json"))
+                except:
+                    print(f"Failed to delete {uuid}")
 
                 item = self._view.scroll_body.findChild(QWidget, uuid)
                 if item:
