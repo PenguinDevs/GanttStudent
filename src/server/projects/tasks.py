@@ -1,10 +1,8 @@
-"""Routes for creating, renaming, and deleting projects."""
+"""Routes for creating, renaming, and deleting tasks."""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from datetime import datetime, timezone
 from uuid import uuid4
-import math
 
 from aiohttp import web
 
@@ -40,6 +38,7 @@ class TasksRoute(WebAppRoutes):
         if isinstance(body, web.Response):
             return body
         
+        # Validation checks.
         required_task_data_fields = {
             "task_type": (str, 4, 9),
             "name": (str, 1, 20),
@@ -50,9 +49,13 @@ class TasksRoute(WebAppRoutes):
             "colour": (str, 7, 7),
             "dependencies": (list,),
         }
+
+        # Validate that all the required fields are present.
         for field, validation_info in required_task_data_fields.items():
             if field in body["task_data"].keys():
                 value = body["task_data"][field]
+
+                # Type check.
                 try:
                     value = validation_info[0](value)
                     body["task_data"][field] = value
@@ -60,31 +63,41 @@ class TasksRoute(WebAppRoutes):
                     return server.json_payload_response(400, {"message": f"Field {field} type in task_data must be {validation_info[0]}, instead got: {type(field)}."})
                 
                 if validation_info[0] is str:
+                    # Range check (string length).
                     if len(value) < validation_info[1]:
                         return server.json_payload_response(400, {"message": f"{field} must be longer than {validation_info[1]} chars."})
                     elif len(value) > validation_info[2]:
                         return server.json_payload_response(400, {"message": f"{field} must be shorter than {validation_info[1]} chars."})
             else:
                 return server.json_payload_response(400, {"message": f"Missing field in task_data: {field}."})
+        
+        # Validate that there are no extra fields in the task_data.
+        for field in body["task_data"].keys():
+            if field not in required_task_data_fields.keys():
+                return server.json_payload_response(400, {"message": f"Invalid field in task_data: {field}."})
 
+        # Validate that the task_type is valid.
         if not body["task_data"]["task_type"] in ("task", "milestone"):
             return server.json_payload_response(400, {"message": f"task_type must be one of task or milestone."})
 
         project_uuid = body["project_uuid"]
-        # Validation checks.
+        # Existence check.
         if project_uuid == "":
             return server.json_payload_response(400, {"message": "Project uuid cannot be empty."})
 
         project_data = await server.db.read("projects", "project_data", {"_id": project_uuid})
+        # Check if the user has access to the project.
         if project_data["admin"] != body["username"] and body["username"] not in project_data["invitees"]:
             return server.json_payload_response(403, {"message": "You don't have access to this project."})
 
+        # Obtain a unique task uuid that does not already exist in the database for the project.
         while True:
             uuid = str(uuid4())
             task_data = await server.db.read("projects", "tasks", {"task_uuid": uuid, "project_uuid": project_uuid})
             if task_data is None:
                 break
         
+        # Get the total number of tasks in the project.
         total_tasks = await server.db.count("projects", "tasks", {"project_uuid": body["project_uuid"]})
 
         task_data = body["task_data"]
@@ -93,6 +106,7 @@ class TasksRoute(WebAppRoutes):
         task_data["project_uuid"] = project_uuid
         task_data["_id"] = f"{uuid}_{project_uuid}"
 
+        # Save.
         await server.db.update("projects", "tasks", {"_id": task_data["_id"]}, task_data)
 
         return server.json_payload_response(200, {
@@ -122,6 +136,7 @@ class TasksRoute(WebAppRoutes):
         if isinstance(body, web.Response):
             return body
         
+        # Validation checks.
         required_task_data_fields = {
             "_id": (str, 36*2+1, 36*2+1),
             "task_uuid": (str, 36, 36),
@@ -136,9 +151,13 @@ class TasksRoute(WebAppRoutes):
             "colour": (str, 7, 7),
             "dependencies": (list,),
         }
+
+        # Validate that all the required fields are present.
         for field, validation_info in required_task_data_fields.items():
             if field in body["task_data"].keys():
                 value = body["task_data"][field]
+                
+                # Type check.
                 try:
                     value = validation_info[0](value)
                     body["task_data"][field] = value
@@ -146,6 +165,7 @@ class TasksRoute(WebAppRoutes):
                     return server.json_payload_response(400, {"message": f"Field {field} type in task_data must be {validation_info[0]}, instead got: {type(field)}."})
                 
                 if validation_info[0] is str:
+                    # Range check (string length).
                     if len(value) < validation_info[1]:
                         return server.json_payload_response(400, {"message": f"{field} must be longer than {validation_info[1]} chars."})
                     elif len(value) > validation_info[2]:
@@ -153,24 +173,31 @@ class TasksRoute(WebAppRoutes):
             else:
                 return server.json_payload_response(400, {"message": f"Missing field in task_data: {field}."})
 
+        # Validate that there are no extra fields in the task_data.
+        for field in body["task_data"].keys():
+            if field not in required_task_data_fields.keys():
+                return server.json_payload_response(400, {"message": f"Invalid field in task_data: {field}."})
+
+        # Validate that the task_type is valid.
         if not body["task_data"]["task_type"] in ("task", "milestone"):
             return server.json_payload_response(400, {"message": f"task_type must be one of task or milestone."})
 
         project_uuid = body["project_uuid"]
-        # Validation checks.
+        # Existence check.
         if project_uuid == "":
             return server.json_payload_response(400, {"message": "Project uuid cannot be empty."})
 
         project_data = await server.db.read("projects", "project_data", {"_id": project_uuid})
+        # Check if the user has access to the project.
         if project_data["admin"] != body["username"] and body["username"] not in project_data["invitees"]:
             return server.json_payload_response(403, {"message": "You don't have access to this project."})
         
-        task_data = body["task_data"]
-        await server.db.update("projects", "tasks", {"_id": task_data["_id"]}, task_data)
+        # Save.
+        await server.db.update("projects", "tasks", {"_id": body["task_data"]["_id"]}, body["task_data"])
 
         return server.json_payload_response(200, {
             "message": "Task updated.",
-            "task_data": task_data,
+            "task_data": body["task_data"],
             "access_token": body["access_token"],
         })
 
@@ -196,20 +223,16 @@ class TasksRoute(WebAppRoutes):
 
         project_uuid = body["project_uuid"]
         
-        # Validation checks.
+        # Existence check.
         if project_uuid == "":
             return server.json_payload_response(400, {"message": "Project uuid cannot be empty."})
 
         project_data = await server.db.read("projects", "project_data", {"_id": project_uuid})
+        # Check if the user has access to the project.
         if project_data["admin"] != body["username"] and body["username"] not in project_data["invitees"]:
             return server.json_payload_response(403, {"message": "You don't have access to this project."})
 
-        while True:
-            uuid = str(uuid4())
-            task_data = await server.db.read("projects", "tasks", {"task_uuid": uuid, "project_uuid": project_uuid})
-            if task_data is None:
-                break
-
+        # Collect all tasks for the project.
         tasks = {}
         async for task in await server.db.read_multi("projects", "tasks", {"project_uuid": project_uuid}):
             tasks[task["task_uuid"]] = task

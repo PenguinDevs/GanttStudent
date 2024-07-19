@@ -3,6 +3,7 @@
 import os
 from datetime import datetime, timedelta, timezone
 
+from PyQt6.QtCore import Qt
 from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
 from PyQt6.QtCore import QUrl
@@ -18,11 +19,15 @@ DEFAULT_COLOUR = "#ffffff"
 
 
 class TaskEditWindow(QMainWindow):
+    """Project view class."""
     ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\task_edit_window.ui")
 
     def __init__(self, parent: QWidget) -> None:
+        """Class initialisation."""
+        self._parent = parent
         super().__init__(parent)
         self._load_ui()
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
 
     def _load_ui(self) -> QWidget:
         """
@@ -41,16 +46,22 @@ class TaskEditController(BaseController):
         super().__init__(*args, **kwargs)
         self.reset()
 
-    def reset(
-            self,
-            task_type: str = "task",
-            colour: str = None,
-            start_date: int = None,
-            end_date: int = None,
-            name: str = None,
-            description: str = None,
-            completed: bool = None,
-    ) -> None:
+    def reset(self, task_type: str = "task", task_data: dict = None) -> None:
+        """
+        Reset the controller.
+
+        Optionally set the task data.
+
+        Args:
+            task_type (str): The type of task to edit.
+            task_data (dict): The task data to edit.
+        """
+
+        # Set the task data (if any), for editing purposes. See in
+        # ._on_confirm_clicked().
+        self._task_data = task_data
+
+        # Update task depending on task type.
         self.task_type = task_type
         if self.task_type == "task":
             self._view.setWindowTitle("Edit task")
@@ -69,30 +80,51 @@ class TaskEditController(BaseController):
             self._view.incomplete_radio.hide()
             self._view.completed_label.hide()
 
-        self.colour = colour or DEFAULT_COLOUR
-        self.start_date = start_date or datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
-        self.end_date = end_date or datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
+        # Set the initial fields of the task edit window.
+        if task_data:
+            # Set task data.
+            self.colour = task_data["colour"]
+            self.start_date = task_data["start_date"]
+            self.end_date = task_data["end_date"]
 
-        self._view.name_field.setText(name or "")
-        self._view.description_field.setText(description or "")
-        self._view.completed_radio.setChecked(False if completed is None else completed)
+            self._view.name_field.setText(task_data["name"])
+            self._view.description_field.setText(task_data["description"])
+            self._view.completed_radio.setChecked(task_data["completed"])
+        else:
+            # Set default task data.
+            self.colour = DEFAULT_COLOUR
+            self.start_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
+            self.end_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
+
+            self._view.name_field.setText("")
+            self._view.description_field.setText("")
+            self._view.completed_radio.setChecked(False)
 
         self.colour_buttons()
         self._display_date_fields()
 
     def _display_date_fields(self) -> None:
+        """Update the date fields in the task edit window."""
         self._view.start_field.setText(datetime.fromtimestamp(self.start_date).strftime("%d/%m/%y"))
         self._view.end_field.setText(datetime.fromtimestamp(self.end_date).strftime("%d/%m/%y"))
 
     def set_colour(self, colour: str = None) -> None:
+        """Set the colour of the task edit window."""
         self._view.task_colour_input.setText(colour)
 
     def colour_buttons(self) -> None:
+        """
+        Colour the colour options in the buttons in the task edit window.
+        
+        Also highlight the selected colour.
+        """
         for button in self._view.palette_buttons.findChildren(QPushButton):
-            button_colour = button.property('colour')
+            button_colour = button.property("colour")
             if self.colour == button_colour:
+                # This is when the user has selected this colour.
                 button.setStyleSheet(f"background-color: {button_colour}; border: 2px solid black;")
             else:
+                # This is when the user has not selected this colour.
                 button.setStyleSheet(f"background-color: {button_colour};")
 
     def _setup_endpoints(self) -> None:
@@ -140,36 +172,56 @@ class TaskEditController(BaseController):
 
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
+
         if self._view.isVisible():
             self._view.hide()
-        self._client.main_window.project_view_controller.fetch_tasks()
+        
+        # self._client.main_window.project_view_controller.fetch_tasks()
+        # Add the new task to the project's list of tasks.
+        self._client.main_window.project_view_controller._tasks[payload["task_data"]["_id"]] = payload["task_data"]
+        self._client.main_window.project_view_controller.render()
     
-    def _submit_task(self) -> None:
+    def _on_confirm_clicked(self) -> None:
         """
         Submit the task data to the server.
-        """
-        task_data = {
-            "task_type": self.task_type,
-            "name": self._view.name_field.text(),
-            "description": self._view.description_field.toPlainText(),
-            "start_date": self.start_date,
-            "end_date": self.end_date,
-            "completed": self._view.completed_radio.isChecked(),
-            "colour": self.colour,
-            "dependencies": [],
-        }
 
-        reply: QNetworkReply = self._network_manager.put(
-            self._new_task,
-            to_json_data(
-                {
-                    "access_token": self._client.cache["access_token"],
-                    "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
-                    "task_data": task_data
-                }
+        If the ._task_data is already set, update the existing task. Otherwise,
+        create a new task.
+        """
+        if self._task_data:
+            # Update the existing task data.
+            self._task_data["name"] = self._view.name_field.text()
+            self._task_data["description"] = self._view.description_field.toPlainText()
+            self._task_data["start_date"] = self.start_date
+            self._task_data["end_date"] = self.end_date
+            self._task_data["completed"] = self._view.completed_radio.isChecked()
+            self._task_data["colour"] = self.colour
+            self.update_task(self._task_data)
+            self._client.main_window.project_view_controller.render()
+        else:
+            # Create a new task.
+            task_data = {
+                "task_type": self.task_type,
+                "name": self._view.name_field.text(),
+                "description": self._view.description_field.toPlainText(),
+                "start_date": self.start_date,
+                "end_date": self.end_date,
+                "completed": self._view.completed_radio.isChecked(),
+                "colour": self.colour,
+                "dependencies": [],
+            }
+
+            reply: QNetworkReply = self._network_manager.put(
+                self._new_task,
+                to_json_data(
+                    {
+                        "access_token": self._client.cache["access_token"],
+                        "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
+                        "task_data": task_data
+                    }
+                )
             )
-        )
-        reply.finished.connect(lambda: self._on_new_task_response(reply))
+            reply.finished.connect(lambda: self._on_new_task_response(reply))
 
     def _on_task_updated_response(self, reply: QNetworkReply) -> None:
         """
@@ -186,6 +238,7 @@ class TaskEditController(BaseController):
 
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
+
         if self._view.isVisible():
             self._view.hide()
     
@@ -209,15 +262,22 @@ class TaskEditController(BaseController):
         reply.finished.connect(lambda: self._on_task_updated_response(reply))
 
     def _prompt_calender(self, field: str) -> None:
+        """
+        Prompt the user to select a date from a calender.
+
+        Args:
+            field (str): The date type to set the date for. Either "start" or
+                "end".
+        """
         def _set_date(date: datetime):
             if field == "start":
                 self.start_date = date.timestamp()
-                if self.end_date < self.start_date:
-                    self.end_date = self.start_date + timedelta(days=1).total_seconds()
             elif field == "end":
                 self.end_date = date.timestamp()
-                if self.end_date < self.start_date:
-                    self.start_date = self.end_date - timedelta(days=1).total_seconds()
+
+            if self.end_date < self.start_date:
+                # Ensure the end date is always after the start date.
+                self.start_date = self.end_date - timedelta(days=1).total_seconds()
 
             self._display_date_fields()
 
@@ -246,7 +306,7 @@ class TaskEditController(BaseController):
         self._view.cancel_button.clicked.connect(self._view.hide)
 
         # Bind create event.
-        self._view.create_button.clicked.connect(self._submit_task)
+        self._view.create_button.clicked.connect(self._on_confirm_clicked)
 
         # Bind colour options.
         self._connect_colour_signals()
