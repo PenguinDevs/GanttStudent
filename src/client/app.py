@@ -5,7 +5,7 @@ import json
 import time
 from dotenv import load_dotenv
 
-from PyQt6 import uic, QtWidgets
+from PyQt6 import uic
 from PyQt6.QtWidgets import(
     QApplication,
     QMainWindow,

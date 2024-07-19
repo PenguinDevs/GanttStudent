@@ -119,7 +119,7 @@ class TasksRoute(WebAppRoutes):
     @routes.post("/project/task/update")
     async def update_task(request: web.Request) -> web.Response:
         """
-        Create a new task using a given name for a given project.
+        Update a task using the given information for a given project.
 
         Args:
             request (web.Request): The request object.
@@ -198,6 +198,53 @@ class TasksRoute(WebAppRoutes):
         return server.json_payload_response(200, {
             "message": "Task updated.",
             "task_data": body["task_data"],
+            "access_token": body["access_token"],
+        })
+    
+    @routes.post("/project/task/delete")
+    async def delete_task(request: web.Request) -> web.Response:
+        """
+        Delete a new task using a given uuid for a given project.
+
+        Args:
+            request (web.Request): The request object.
+        
+        Returns:
+            web.Response: The response object.
+                400: Invalid JSON payload.
+                410: Access token expired.
+                403: Invalid access token.
+                200: Success.
+        """
+        server: WebServer = request.app.app
+        body = await parse_json_request(request, ["project_uuid", "task_uuid"])
+        if isinstance(body, web.Response):
+            return body
+
+        project_uuid = body["project_uuid"]
+        task_uuid = body["task_uuid"]
+        # Existence check.
+        if project_uuid == "":
+            return server.json_payload_response(400, {"message": "Project uuid cannot be empty."})
+
+        project_data = await server.db.read("projects", "project_data", {"_id": project_uuid})
+        # Check if the user has access to the project.
+        if project_data["admin"] != body["username"] and body["username"] not in project_data["invitees"]:
+            return server.json_payload_response(403, {"message": "You don't have access to this project."})
+        
+        task_data = await server.db.read("projects", "tasks", {"task_uuid": task_uuid, "project_uuid": project_uuid})
+        if task_data is None:
+            return server.json_payload_response(404, {"message": "Task not found."})
+
+        # Delete.
+        await server.db.erase("projects", "tasks", {"task_uuid": task_uuid})
+        
+        # Shift all tasks with a row greater than the deleted task's row down by 1.
+        await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}, inc={"row": -1})
+        
+        return server.json_payload_response(200, {
+            "message": "Task updated.",
+            "task_uuid": task_uuid,
             "access_token": body["access_token"],
         })
 

@@ -1302,6 +1302,39 @@ QPushButton:hover {
      <string/>
     </property>
    </widget>
+   <widget class="QPushButton" name="delete_button">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>490</y>
+      <width>111</width>
+      <height>81</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Leelawadee</family>
+      <pointsize>15</pointsize>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton {
+	border: 2px solid #ff8f8f;
+	border-radius: 5px;
+	background: #ffd9d9;
+	color: #3a414a;
+}
+
+QPushButton:hover {
+	border: 2px solid #f06969;
+	background: #ffb3b3
+}</string>
+    </property>
+    <property name="text">
+     <string>DELETE</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

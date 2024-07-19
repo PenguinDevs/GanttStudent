@@ -83,6 +83,7 @@ class TaskEditController(BaseController):
         # Set the initial fields of the task edit window.
         if task_data:
             # Set task data.
+            # (Editing task).
             self.colour = task_data["colour"]
             self.start_date = task_data["start_date"]
             self.end_date = task_data["end_date"]
@@ -90,8 +91,11 @@ class TaskEditController(BaseController):
             self._view.name_field.setText(task_data["name"])
             self._view.description_field.setText(task_data["description"])
             self._view.completed_radio.setChecked(task_data["completed"])
+
+            self._view.delete_button.show()
         else:
             # Set default task data.
+            # (Creating new task).
             self.colour = DEFAULT_COLOUR
             self.start_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp()
             self.end_date = datetime(*datetime.now(timezone.utc).timetuple()[:3]).timestamp() + timedelta(days=1).total_seconds()
@@ -99,6 +103,8 @@ class TaskEditController(BaseController):
             self._view.name_field.setText("")
             self._view.description_field.setText("")
             self._view.completed_radio.setChecked(False)
+
+            self._view.delete_button.hide()
 
         self.colour_buttons()
         self._display_date_fields()
@@ -135,6 +141,10 @@ class TaskEditController(BaseController):
         self._update_task = QNetworkRequest()
         self._update_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/update"))
         self._update_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
+
+        self._delete_task = QNetworkRequest()
+        self._delete_task.setUrl(QUrl(f"{os.getenv('SERVER_ADDRESS')}/project/task/delete"))
+        self._delete_task.setHeader(QNetworkRequest.KnownHeaders.ContentTypeHeader, "application/json")
     
     def _handle_error(self, reply: QNetworkReply, error: QNetworkReply.NetworkError) -> None:
         """
@@ -176,7 +186,6 @@ class TaskEditController(BaseController):
         if self._view.isVisible():
             self._view.hide()
         
-        # self._client.main_window.project_view_controller.fetch_tasks()
         # Add the new task to the project's list of tasks.
         self._client.main_window.project_view_controller._tasks[payload["task_data"]["_id"]] = payload["task_data"]
         self._client.main_window.project_view_controller.render()
@@ -242,6 +251,27 @@ class TaskEditController(BaseController):
         if self._view.isVisible():
             self._view.hide()
     
+    def _on_task_deleted_response(self, reply: QNetworkReply) -> None:
+        """
+        A callback function for when a task is deleted.
+
+        Args:
+            reply (QNetworkReply): The reply object from the server.
+        """
+        # Do not proceed if there was an error.
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            return self._handle_error(reply, reply.error())
+        
+        reply.deleteLater()
+
+        payload = get_json_from_reply(reply)
+        handle_new_response_payload(self._client, payload)
+
+        if self._view.isVisible():
+            self._view.hide()
+
+        self._client.main_window.project_view_controller.fetch_tasks()
+
     def update_task(self, task_data: dict) -> None:
         """
         Submit the task data to the server.
@@ -260,6 +290,25 @@ class TaskEditController(BaseController):
             )
         )
         reply.finished.connect(lambda: self._on_task_updated_response(reply))
+
+    def delete_task(self, task_uuid: str) -> None:
+        """
+        Delete the task from the server.
+
+        Args:
+            task_data (dict): The task data to delete.
+        """
+        reply: QNetworkReply = self._network_manager.post(
+            self._delete_task,
+            to_json_data(
+                {
+                    "access_token": self._client.cache["access_token"],
+                    "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
+                    "task_uuid": task_uuid
+                }
+            )
+        )
+        reply.finished.connect(lambda: self._on_task_deleted_response(reply))
 
     def _prompt_calender(self, field: str) -> None:
         """
@@ -307,6 +356,9 @@ class TaskEditController(BaseController):
 
         # Bind create event.
         self._view.create_button.clicked.connect(self._on_confirm_clicked)
+
+        # Bind delete event.
+        self._view.delete_button.clicked.connect(lambda: self.delete_task(self._task_data["task_uuid"]))
 
         # Bind colour options.
         self._connect_colour_signals()
