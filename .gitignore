@@ -4,4 +4,10 @@ __pycache__/
 
 # Virtual environment
 /.venv
+
+# Session
 user_projects/
+cache.json
+
+# Private files
+.env

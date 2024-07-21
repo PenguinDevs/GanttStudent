@@ -135,7 +135,6 @@ class ProjectViewPage(BasePage):
         # the project timeline.
         for i in range(TEMPLATE_ROWS):
             row_label = QLabel(self)
-            row_label.setText(f"Row {i}")
             row_label.setStyleSheet(
                 f"""
                 background: {EVEN_COLUMN_COLOUR};
