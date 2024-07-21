@@ -13,10 +13,6 @@ from PyQt6.QtGui import (
 )
 from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame
 
-from .task_edit import TaskEditWindow, TaskEditController
-from .timeline import TimelineGridWidget, set_timeline_objects
-from .task_items import TimelineTaskItem, TimelineMilestoneItem
-
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data, handle_new_response_payload
@@ -29,6 +25,10 @@ from .config import (
     ODD_COLUMN_COLOUR,
     TEMPLATE_ROWS
 )
+from .task_edit import TaskEditWindow, TaskEditController
+from .timeline import TimelineGridWidget, set_timeline_objects
+from .task_items import TimelineTaskItem, TimelineMilestoneItem
+from .inheritence_arrows import Arrow, Path
 set_timeline_objects(TimelineTaskItem, TimelineMilestoneItem)
 
 
@@ -45,6 +45,9 @@ class ProjectViewPage(BasePage):
         super().assign_controller(controller)
 
         self.drag_area.grid_updated.connect(self._controller.grid_updated)
+        self.drag_area.dependency_updated.connect(self._controller.dependency_updated)
+        self.drag_area.hide_arrows.connect(self._controller.hide_arrows)
+        self.drag_area.show_arrows.connect(self._controller.show_arrows)
 
     def _setup_drag_area(self) -> None:
         """Setup the drag area for the timeline."""
@@ -202,6 +205,7 @@ class ProjectViewController(BaseController):
 
         self._task_items = {}
         self._row_items = {}
+        self._arrow_items = {}
 
         self.reset()
 
@@ -359,6 +363,14 @@ class ProjectViewController(BaseController):
             self._view.timeline_scroll_area.removeWidget(item)
             item.deleteLater()
             del item
+        
+        # Clear the dependency arrow objects
+        for arrow in self._arrow_items.values():
+            arrow._scene.clear()
+            self._view.drag_area.layout().removeWidget(arrow._view)
+            arrow._view.deleteLater()
+            del arrow
+        self._arrow_items = {}
 
     def _get_item_double_click_callback(self, task_data: dict) -> None:
         """
@@ -385,6 +397,35 @@ class ProjectViewController(BaseController):
 
         Creates, updates, or removes task items and row items as necessary.
         """
+        # Iterate every task in the project.
+        for task_uuid, source_task in self._tasks.items():
+            for dependency in source_task["dependencies"]:
+                destination_task = self._tasks[dependency]
+
+                source_start_column = (datetime.fromtimestamp(source_task["start_date"]) - self.start_date).days
+                source_end_column = (datetime.fromtimestamp(source_task["end_date"]) - self.start_date).days
+
+                destination_start_column = (datetime.fromtimestamp(destination_task["start_date"]) - self.start_date).days
+                destination_end_column = (datetime.fromtimestamp(destination_task["end_date"]) - self.start_date).days
+
+                arrow = self._arrow_items.get(f"{task_uuid}:{dependency}")
+                if arrow is None:
+                    arrow = Arrow(self._view.drag_area)
+                    self._arrow_items[f"{task_uuid}:{dependency}"] = arrow
+                
+                arrow.set_source_destination(source_task["row"]+1, source_end_column-1, destination_task["row"]+1, destination_start_column)
+        
+        dependency_keys = [f"{task_uuid}:{dependency}" for task_uuid in self._tasks for dependency in self._tasks[task_uuid]["dependencies"]]
+        for key in list(self._arrow_items.keys()):
+            if key not in dependency_keys:
+                arrow = self._arrow_items[key]
+                arrow._scene.clear()
+                arrow._view.hide()
+                self._view.drag_area.layout().removeWidget(arrow._view)
+                arrow._view.deleteLater()
+                self._arrow_items.pop(key)
+                del arrow
+
         # Iterate every task in the project.
         for task_uuid, task in self._tasks.items():
             # Calculate the start and end column of the task for the timeline
@@ -426,6 +467,9 @@ class ProjectViewController(BaseController):
                 # Update the task item's name and colour.
                 self._task_items[task_uuid].set_name(task["name"])
                 self._task_items[task_uuid].set_colour(task["colour"])
+
+            self._task_items[task_uuid].min_row = 0
+            self._task_items[task_uuid].min_column = 0
             
             if not task_uuid in self._row_items.keys():
                 # If the row item (on the left panel) does not exist, then
@@ -439,9 +483,25 @@ class ProjectViewController(BaseController):
             self._row_items[task_uuid].set_task_data(task["name"], datetime.fromtimestamp(task["start_date"]), datetime.fromtimestamp(task["end_date"]))
             self._view.tasks_frame.layout().addWidget(self._row_items[task_uuid], task["row"]+1, 0)
 
+        def dependency_recursion(task_uuid: int, parent_task: dict = None) -> None:
+            task = self._tasks[task_uuid]
+
+            if not parent_task is None:
+                self._task_items[task_uuid].min_row = parent_task["row"] + 2
+                self._task_items[task_uuid].min_column = (datetime.fromtimestamp(parent_task["end_date"]) - self.start_date).days
+
+            for dependency in task["dependencies"]:
+                dependency_recursion(dependency, task)
+        
+        for task_uuid in self._tasks:
+            task = self._tasks[task_uuid]
+            for dependency in task["dependencies"]:
+                dependency_recursion(dependency, task)
+
         # Iterate every task item in the timeline to check if any tasks have
         # been removed from the project.
         for task_uuid, item in list(self._task_items.items()):
+            item.raise_()
             if not task_uuid in self._tasks.keys():
                 # Delete the task item.
                 self._view.drag_area.grid_layout.removeWidget(item)
@@ -463,6 +523,22 @@ class ProjectViewController(BaseController):
 
         # Ensure that the drag indicator is at the top of the z-index.
         self._view.drag_area._drag_target_indicator.raise_()
+
+        self._view.drag_area.tasks_updated.emit([])
+
+    def hide_arrows(self, data: list = []) -> None:
+        """
+        Hide the dependency arrows in the timeline.
+        """
+        for arrow in self._arrow_items.values():
+            arrow._view.hide()
+
+    def show_arrows(self, data: list = []) -> None:
+        """
+        Show the dependency arrows in the timeline.
+        """
+        for arrow in self._arrow_items.values():
+            arrow._view.show()
 
     def load(self, project_data: dict) -> None:
         """
@@ -515,26 +591,137 @@ class ProjectViewController(BaseController):
                 # No changes made, ignore.
                 return
 
-            # Search for other tasks in the same row to update their row if
-            # necessary.
-            for other_task in self._tasks.values():
-                if other_task["row"] == row - 1 and not other_task == task_data:
-                    # Switch the row of the other task to the old row of the
-                    # task that was moved.
-                    other_task["row"] = task_data["row"]
-                    self.task_edit_controller.update_task(other_task)
+            # # Search for other tasks in the same row to update their row if
+            # # necessary.
+            # for other_task in self._tasks.values():
+            #     if other_task["row"] == row - 1 and not other_task == task_data:
+            #         # Switch the row of the other task to the old row of the
+            #         # task that was moved.
+            #         other_task["row"] = task_data["row"]
+            #         self.task_edit_controller.update_task(other_task)
 
-                    # Break because only one task can be in the same row.
-                    break
-            
+            #         # Break because only one task can be in the same row.
+            #         break
+            self.change_task_row(task_uuid, new_row)
+
             # Update the task data.
-            task_data["row"] = new_row
             task_data["start_date"] = new_start_date
             task_data["end_date"] = new_end_date
+
+            def recursive_shift(task_uuid: int, parent_task: dict = None) -> None:
+                task = self._tasks[task_uuid]
+
+                if not parent_task is None:
+                    if task["start_date"] < parent_task["end_date"]:
+                        shift = parent_task["end_date"] - task["start_date"]
+                        task["start_date"] = task["start_date"] + shift
+                        task["end_date"] = task["end_date"] + shift
+
+                    if task["row"] <= parent_task["row"]:
+                        self.change_task_row(task_uuid, parent_task["row"])
+
+                self.task_edit_controller.update_task(task)
+                for dependency in task["dependencies"]:
+                    recursive_shift(dependency, task)
+            recursive_shift(task_uuid)
 
             self.task_edit_controller.update_task(task_data)
 
             self.render()
+
+    def change_task_row(self, task_uuid: int, row: int) -> None:
+        """
+        Change the row of a task by shifting the rows of other tasks.
+
+        Args:
+            task_uuid (int): The UUID of the task to change the row of.
+            row (int): The new row to assign to the task.
+        """
+        task_data = self._tasks[task_uuid]
+
+        if task_data["row"] == row:
+            # No changes made, ignore.
+            return
+
+        if row > task_data["row"]:
+            # If the new row is greater than the old row, then shift the rows
+            # of the tasks above the old row down by one.
+            for other_task in self._tasks.values():
+                if other_task["row"] > task_data["row"] and other_task["row"] <= row:
+                    other_task["row"] -= 1
+                    self.task_edit_controller.update_task(other_task)
+        else:
+            # If the new row is less than the old row, then shift the rows of
+            # the tasks below the old row up by one.
+            for other_task in self._tasks.values():
+                if other_task["row"] < task_data["row"] and other_task["row"] >= row:
+                    other_task["row"] += 1
+                    self.task_edit_controller.update_task(other_task)
+
+        task_data["row"] = row
+
+        self.task_edit_controller.update_task(task_data)
+
+        self.render()
+
+    def dependency_updated(self, data: list) -> None:
+        """
+        A callback function for when a task's dependency is updated.
+
+        Args:
+            data (list): The data from the dependency update.
+                i=0: Source task UUID.
+                i=1: Destination task UUID.
+        """
+        source_task_widget, destination_task_widget = data
+        source_task_uuid, destination_task_uuid = source_task_widget.task_uuid, destination_task_widget.task_uuid
+        source_task = self._tasks[source_task_uuid]
+        destination_task = self._tasks[destination_task_uuid]
+
+        self.show_arrows()
+        if destination_task_uuid == source_task_uuid:
+            # Cannot have a task depend on itself.
+            return
+
+        if source_task_uuid in destination_task["dependencies"]:
+            create_message_dialog(self._view, "Error", "A task cannot depend on a task that depends on it.").exec()
+            return
+
+        if destination_task_uuid in source_task["dependencies"]:
+            # Remove the dependency.
+            source_task["dependencies"].remove(destination_task_uuid)
+        else:
+            # Add the dependency.
+            source_task["dependencies"].append(destination_task_uuid)
+
+            if destination_task["row"] < source_task["row"]:
+                # If the destination task is above the source task, then swap it
+                # with the row below the source task.
+                self.change_task_row(destination_task_uuid, source_task["row"])
+
+            if destination_task["start_date"] < source_task["end_date"]:
+                # If the destination task starts before the source task ends,
+                # then shift the destination task and its dependencies to start
+                # a day after the source task ends.
+                shift = source_task["end_date"] - destination_task["start_date"]
+                def recursive_shift(task_uuid: int, parent_task: dict = None) -> None:
+                    task = self._tasks[task_uuid]
+                    task["start_date"] = task["start_date"] + shift
+                    task["end_date"] = task["end_date"] + shift
+
+                    if not parent_task is None:
+                        if task["row"] <= parent_task["row"]:
+                            self.change_task_row(task_uuid, parent_task["row"])
+
+                    self.task_edit_controller.update_task(task)
+                    for dependency in task["dependencies"]:
+                        recursive_shift(dependency, task)
+                recursive_shift(destination_task_uuid)
+
+        self.task_edit_controller.update_task(source_task)
+        self.task_edit_controller.update_task(destination_task)
+
+        self.render()
 
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
         """

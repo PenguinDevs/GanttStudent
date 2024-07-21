@@ -64,7 +64,10 @@ class TaskEditController(BaseController):
         # Update task depending on task type.
         self.task_type = task_type
         if self.task_type == "task":
-            self._view.setWindowTitle("Edit task")
+            if self._task_data:
+                self._view.setWindowTitle("Edit task")
+            else:
+                self._view.setWindowTitle("New task")
             self._view.name_label.setText("Task:")
             self._view.end_label.show()
             self._view.end_field.show()
@@ -72,7 +75,10 @@ class TaskEditController(BaseController):
             self._view.incomplete_radio.show()
             self._view.completed_label.show()
         elif self.task_type == "milestone":
-            self._view.setWindowTitle("Edit milestone")
+            if self._task_data:
+                self._view.setWindowTitle("Edit milestone")
+            else:
+                self._view.setWindowTitle("New milestone")
             self._view.name_label.setText("Milestone:")
             self._view.end_label.hide()
             self._view.end_field.hide()
@@ -187,7 +193,7 @@ class TaskEditController(BaseController):
             self._view.hide()
         
         # Add the new task to the project's list of tasks.
-        self._client.main_window.project_view_controller._tasks[payload["task_data"]["_id"]] = payload["task_data"]
+        self._client.main_window.project_view_controller._tasks[payload["task_data"]["task_uuid"]] = payload["task_data"]
         self._client.main_window.project_view_controller.render()
     
     def _on_confirm_clicked(self) -> None:

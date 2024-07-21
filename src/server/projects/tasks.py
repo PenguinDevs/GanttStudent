@@ -104,7 +104,7 @@ class TasksRoute(WebAppRoutes):
         task_data["row"] = total_tasks
         task_data["task_uuid"] = uuid
         task_data["project_uuid"] = project_uuid
-        task_data["_id"] = f"{uuid}_{project_uuid}"
+        task_data["_id"] = f"{uuid}:{project_uuid}"
 
         # Save.
         await server.db.update("projects", "tasks", {"_id": task_data["_id"]}, task_data)
@@ -239,8 +239,9 @@ class TasksRoute(WebAppRoutes):
         # Delete.
         await server.db.erase("projects", "tasks", {"task_uuid": task_uuid})
         
-        # Shift all tasks with a row greater than the deleted task's row down by 1.
-        await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}, inc={"row": -1})
+        if await server.db.count("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}) > 0:
+            # Shift all tasks with a row greater than the deleted task's row down by 1.
+            await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}, inc={"row": -1})
         
         return server.json_payload_response(200, {
             "message": "Task updated.",

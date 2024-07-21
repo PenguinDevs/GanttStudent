@@ -1,6 +1,7 @@
 """Main client application."""
 
 import os
+import sys
 import json
 import time
 from dotenv import load_dotenv
@@ -40,11 +41,11 @@ class ClientApplication():
         # Setup the UI window.
         self._setup_window()
 
-        # Load the user cache.
-        self.load_cache()
-
         # When was the last time the cache was saved.
         self.last_file_save = 0
+
+        # Load the user cache.
+        self.load_cache()
 
         if self.cache["access_token"] is None:
             # Show the login screen if the user is not logged in.
@@ -53,6 +54,14 @@ class ClientApplication():
             # Show the navigation screen if the user is logged in.
             self.main_window.navigation_controller.show()
     
+    def _new_cache(self):
+        """Reset the cache."""
+        self.cache = {
+            "access_token": None
+        }
+        self.save_cache()
+        return
+
     def load_cache(self):
         """
         Load the cache from the cache file.
@@ -61,15 +70,14 @@ class ClientApplication():
         """
         if not os.path.exists(CACHE_PATH):
             # Create the cache file if it does not exist.
-            self.cache = {
-                "access_token": None
-            }
-            self.save_cache()
-            return
+            return self._new_cache()
         else:
             # Otherwise load the cache from the file.
-            with open(CACHE_PATH, "r") as file:
-                self.cache = json.load(file)
+            try:
+                with open(CACHE_PATH, "r") as file:
+                    self.cache = json.load(file)
+            except:
+                self._new_cache()
 
     def save_cache(self):
         """
@@ -117,6 +125,13 @@ class ClientApplication():
     def run(self):
         """Run the application."""
         self.app.exec()
+
+        sys._excepthook = sys.excepthook 
+        def exception_hook(exctype, value, traceback):
+            print(exctype, value, traceback)
+            sys._excepthook(exctype, value, traceback) 
+            sys.exit(1) 
+        sys.excepthook = exception_hook 
 
 class MainWindow(QMainWindow):
     """Main UI window for the application."""

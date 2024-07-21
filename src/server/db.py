@@ -45,6 +45,13 @@ class MongoDB():
         await collection.delete_one(target)
 
         return
+    
+    async def erase_many(self, db: str, collection: str, target: dict) -> None:
+        db = self.client[db]
+        collection = db[collection]
+        await collection.delete_many(target)
+
+        return
 
     async def update(self, db: str, collection: str, target: dict = {}, value: dict = {}, unset: dict = {}, pull: dict = {}, inc: dict = {}) -> None:
         db = self.client[db]

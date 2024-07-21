@@ -46,6 +46,22 @@ class TimelineGridWidget(QWidget):
     # Signal for when the grid is updated.
     grid_updated = pyqtSignal(list)
 
+    # Signal for when a task dependency is updated.
+    dependency_updated = pyqtSignal(list)
+
+    # Signal for when tasks are updated.
+    tasks_updated = pyqtSignal(list)
+
+    # Signal for to hide/show arrows.
+    hide_arrows = pyqtSignal(list)
+    show_arrows = pyqtSignal(list)
+
+    # The previous mouse buttons held down when dragging.
+    _prev_buttons = None
+
+    # Row and column mapping to the task item.
+    row_column_task_mapping = {}
+
     def __init__(self, *args, **kwargs) -> None:
         """Class initialisation."""
         super().__init__()
@@ -60,6 +76,19 @@ class TimelineGridWidget(QWidget):
         self.grid_layout.setContentsMargins(0, 0, 0, 0)
 
         self.setLayout(self.grid_layout)
+
+        self.tasks_updated.connect(self.update_row_column_task_mapping)
+
+    def update_row_column_task_mapping(self, data: list = None) -> None:
+        """
+        Update the row and column mapping to each task item.
+        """
+        self.row_column_task_mapping = {}
+        for i in range(self.grid_layout.count()):
+            widget = self.grid_layout.itemAt(i).widget()
+            widget_row, widget_column, _, days = self.grid_layout.getItemPosition(i)
+            for j in range(days):
+                self.row_column_task_mapping[f"{widget_row}:{widget_column+j}"] = widget
 
     def setup_drag_indicator(self) -> None:
         """
@@ -90,6 +119,7 @@ class TimelineGridWidget(QWidget):
         This is used to assign the original dimensions of the widget being
         dragged, and to show this size on the drag target indicator.
         """
+        self.hide_arrows.emit([])
         self._widget = drag_event.source()
         _, _, self._drag_target_indicator._cell_height, self._drag_target_indicator._cell_width = self.grid_layout.getItemPosition(self.grid_layout.indexOf(drag_event.source()))
 
@@ -102,6 +132,7 @@ class TimelineGridWidget(QWidget):
         This is used to hide the drag target indicator and reset the original
         dimensions of the widget being dragged.
         """
+        self.show_arrows.emit([])
         self._drag_target_indicator.hide()
 
         self._widget = None
@@ -116,33 +147,36 @@ class TimelineGridWidget(QWidget):
         This is used to move the drag target indicator to the correct location
         on the timeline grid.
         """
-        # Find the correct location of the drop target.
-        row, column = self._find_drop_location(drag_event)
-        cell_height, cell_width = self._drag_target_indicator.get_cell_size()
+        self._prev_buttons = drag_event.buttons()
+        if self._prev_buttons == Qt.MouseButton.LeftButton:
+            # Find the correct location of the drop target.
+            row, column = self._find_drop_location(drag_event)
+            cell_height, cell_width = self._drag_target_indicator.get_cell_size()
 
-        # Offset is for when the user drags the task item of length more than 1
-        # at a point that is not the start of the task item.
-        offset_cells_column = 0
+            # Offset is for when the user drags the task item of length more than 1
+            # at a point that is not the start of the task item.
+            offset_cells_column = 0
 
-        if isinstance(self._widget, DragItem):
-            offset_cells_column = 0 - (self._widget.offset.x() // CELL_WIDTH)
+            if isinstance(self._widget, DragItem):
+                offset_cells_column = 0 - (self._widget.offset.x() // CELL_WIDTH)
 
-        if not row is None and not column is None and not cell_height is None and not cell_width is None:
-            # Inserting item into the grid also updates its position even if its
-            # already in the layout.
-            self.grid_layout.addWidget(
-                self._drag_target_indicator,
-                min(self.max_rows, row),
-                max(0, column+offset_cells_column),
-                cell_height,
-                cell_width
-            )
+            if not row is None and not column is None and not cell_height is None and not cell_width is None:
+                # Inserting item into the grid also updates its position even if its
+                # already in the layout.
+                print(self._widget.min_row)
+                self.grid_layout.addWidget(
+                    self._drag_target_indicator,
+                    max(self._widget.min_row, min(self.max_rows, row)),
+                    max(self._widget.min_column, column+offset_cells_column),
+                    cell_height,
+                    cell_width
+                )
 
-            # Hide the item being dragged.
-            drag_event.source().hide()
+                # Hide the item being dragged.
+                drag_event.source().hide()
 
-            # Show the target.
-            self._drag_target_indicator.show()
+                # Show the target.
+                self._drag_target_indicator.show()
         
         drag_event.accept()
 
@@ -154,21 +188,38 @@ class TimelineGridWidget(QWidget):
         This is used to place the item in the correct location on the timeline
         grid.
         """
-        # Use drop target location for destination, then hide it.
-        row, column, cell_height, cell_width = self.grid_layout.getItemPosition(self.grid_layout.indexOf(self._drag_target_indicator))
-        self._drag_target_indicator.hide()
-        
-        if not row is None and not column is None and not cell_height is None and not cell_width is None and not self._widget is None:
-            # Inserting item into the grid also updates its position even if its
-            # already in the layout.
-            self.grid_layout.addWidget(self._widget, row, column, cell_height, cell_width)
-            self._widget.show()
+        if self._prev_buttons == Qt.MouseButton.LeftButton:
+            # Use drop target location for destination, then hide it.
+            row, column, cell_height, cell_width = self.grid_layout.getItemPosition(self.grid_layout.indexOf(self._drag_target_indicator))
+            self._drag_target_indicator.hide()
+            self.show_arrows.emit([])
+            
+            if not row is None and not column is None and not cell_height is None and not cell_width is None and not self._widget is None:
+                # Inserting item into the grid also updates its position even if its
+                # already in the layout.
+                self.grid_layout.addWidget(self._widget, row, column, cell_height, cell_width)
+                self._widget.show()
 
-            # Fire signal for grid update.
-            self.grid_updated.emit([self._widget, row, column, cell_height, cell_width])
+                # Fire signal for grid update.
+                self.grid_updated.emit([self._widget, row, column, cell_height, cell_width])
 
-            # Update the grid.
-            self.grid_layout.activate()
+                # Update the grid.
+                self.grid_layout.activate()
+        elif self._prev_buttons == Qt.MouseButton.RightButton:
+            # The user is holding down the right mouse button to create an arrow.
+            position = drop_event.position()
+            row = int(position.y() // CELL_HEIGHT)
+            column = int(position.x() // CELL_WIDTH)
+            
+            destination = self.row_column_task_mapping.get(f"{row}:{column}")
+            if destination:
+                if not isinstance(destination, TimelineTaskItem) and not isinstance(destination, TimelineMilestoneItem):
+                    return
+                
+                source = self._widget
+
+                # Update the destination's inheritance to source.
+                self.dependency_updated.emit([source, destination])
 
         drop_event.accept()
 
@@ -252,6 +303,11 @@ class DragItem(QPushButton):
     # This is used for the size of the resize handles.
     resize_margin = 4
 
+    # The minimum row and column that this item can be at. Influenced by its
+    # dependency tasks.
+    min_row = 0
+    min_column = 0
+
     sections = [x|y for x in (POS_LEFT, POS_RIGHT) for y in (POS_TOP, POS_BOTTOM)]
 
     # Cursor icons.
@@ -308,6 +364,9 @@ class DragItem(QPushButton):
             if new_cell_width < 0 and self._original_cell_width <= 1:
                 return
             
+            if column - new_cell_width < self.min_column:
+                return
+
             self.parent_widget.grid_layout.addWidget(self, row, column - new_cell_width, self._original_cell_height, self._original_cell_width + new_cell_width)
             
             # Because the task item also moves with the cursor, thus moving the
@@ -369,16 +428,25 @@ class DragItem(QPushButton):
 
             drag.exec(Qt.DropAction.MoveAction)
 
-            if isinstance(self, TimelineTaskItem):
-                self.reset_style_sheet()
-            elif isinstance(self, TimelineMilestoneItem):
-                _, column, _, _ = self.parent_widget.grid_layout.getItemPosition(self.parent_widget.grid_layout.indexOf(self))
-                if column % 2 == 0:
-                    self.set_background_colour(EVEN_COLUMN_COLOUR)
-                else:
-                    self.set_background_colour(ODD_COLUMN_COLOUR)
-            
             self.show() # Show this widget again, if it's dropped outside.
+        elif mouse_event.buttons() == Qt.MouseButton.RightButton:
+            # The user is holding down the right mouse button after right
+            # holding on the widget.
+            # TODO: Arrow preview here
+            drag = QDrag(self)
+            mime = QMimeData()
+            drag.setMimeData(mime)
+
+            drag.exec(Qt.DropAction.MoveAction)
+
+        if isinstance(self, TimelineTaskItem):
+            self.reset_style_sheet()
+        elif isinstance(self, TimelineMilestoneItem):
+            _, column, _, _ = self.parent_widget.grid_layout.getItemPosition(self.parent_widget.grid_layout.indexOf(self))
+            if column % 2 == 0:
+                self.set_background_colour(EVEN_COLUMN_COLOUR)
+            else:
+                self.set_background_colour(ODD_COLUMN_COLOUR)
 
         super().mouseMoveEvent(mouse_event)
         self.update()
@@ -394,7 +462,8 @@ class DragItem(QPushButton):
                 self.setCursor(self.cursors[section])
                 self.section = section
                 return section
-        self.unsetCursor()
+        # self.unsetCursor()
+        self.setCursor(QtCore.Qt.CursorShape.SizeAllCursor)
 
     def mousePressEvent(self, mouse_event: QMouseEvent) -> None:
         """
