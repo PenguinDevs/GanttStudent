@@ -1,4 +1,9 @@
-"""Route for logging in as a user."""
+"""
+login.py
+Route for logging in as a user.
+@jasonyi
+Created 24/05/2024
+"""
 
 from __future__ import annotations
 from aiohttp import web

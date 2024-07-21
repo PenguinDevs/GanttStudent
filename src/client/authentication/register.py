@@ -1,4 +1,9 @@
-"""Register page and controller module."""
+"""
+register.py
+Register page and controller module.
+@jasonyi
+Created 18/05/2024
+"""
 
 import os
 

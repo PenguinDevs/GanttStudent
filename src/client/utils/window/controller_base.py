@@ -1,4 +1,9 @@
-"""Controller base class for all controllers in the application."""
+"""
+controller_base.py
+Controller base class for all controllers in the application.
+@jasonyi
+Created 16/05/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

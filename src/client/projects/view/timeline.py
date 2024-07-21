@@ -1,4 +1,9 @@
-"""The timeline grid widget for the project timeline view."""
+"""
+timeline.py
+The timeline grid widget for the project timeline view.
+@jasonyi
+Created 11/06/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

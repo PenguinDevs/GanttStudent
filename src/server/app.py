@@ -1,4 +1,9 @@
-"""Server application for the backend API."""
+"""
+app.py
+Server application for the backend API.
+@jasonyi
+Created 15/05/2024
+"""
 
 import os
 from dotenv import load_dotenv

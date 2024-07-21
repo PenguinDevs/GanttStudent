@@ -1,4 +1,9 @@
-"""Main client application."""
+"""
+app.py
+Main client application.
+@jasonyi
+Created 15/05/2024
+"""
 
 import os
 import sys

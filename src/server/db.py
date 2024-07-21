@@ -1,4 +1,9 @@
-"""This module contains the MongoDB class, which is used to interact with the MongoDB database."""
+"""
+db.py
+This module contains the MongoDB class, which is used to interact with the MongoDB database.
+@jasonyi
+Created 14/05/2024
+"""
 
 from motor import motor_asyncio
 import os

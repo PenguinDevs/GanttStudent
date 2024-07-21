@@ -1,4 +1,9 @@
-"""Base class for routes to be added to the web server routing table."""
+"""
+base_router.py
+Base class for routes to be added to the web server routing table.
+@jasonyi
+Created 16/05/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

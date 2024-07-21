@@ -1,3 +1,9 @@
+"""
+config.py
+Stores the configurations for the project view.
+@jasonyi
+Created 12/06/2024
+"""
 import os
 
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_projects")

@@ -1,4 +1,9 @@
-"""Page base class for the window system."""
+"""
+page_base.py
+Page base class for the window system.
+@jasonyi
+Created 16/05/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

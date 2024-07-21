@@ -1,4 +1,9 @@
-"""Dialog popups for the client application."""
+"""
+dialog.py
+Dialog popups for the client application.
+@jasonyi
+Created 28/05/2024
+"""
 from datetime import datetime
 
 from PyQt6.QtCore import QDate

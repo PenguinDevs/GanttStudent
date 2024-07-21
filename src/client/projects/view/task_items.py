@@ -1,4 +1,9 @@
-"""Stores the task items for the timeline grid."""
+"""
+task_items.py
+Stores the task items for the timeline grid.
+@jasonyi
+Created 12/06/2024
+"""
 
 from PyQt6.QtCore import Qt, QPoint
 from PyQt6.QtGui import (

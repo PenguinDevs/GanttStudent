@@ -1,3 +1,10 @@
+"""
+inheritance_arrows.py
+Draws inheritance arrows between classes in the project view.
+@jasonyi
+Created 17/06/2024
+"""
+
 import math, sys
 from PyQt6 import QtWidgets, QtCore, QtGui
 

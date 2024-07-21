@@ -1,4 +1,9 @@
-"""Projects navigation module."""
+"""
+navigation/__init__.py
+Projects navigation module.
+@jasonyi
+Created 30/05/2024
+"""
 
 import os
 import json

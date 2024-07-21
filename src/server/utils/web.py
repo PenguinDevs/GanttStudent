@@ -1,4 +1,9 @@
-"""This module contains web utility functions for the web server."""
+"""
+web.py
+This module contains web utility functions for the web server.
+@jasonyi
+Created 19/05/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

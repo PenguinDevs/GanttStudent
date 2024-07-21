@@ -1,4 +1,9 @@
-"""Functions for handling server responses."""
+"""
+server_response.py
+Functions for handling server responses.
+@jasonyi
+Created 18/05/2024
+"""
 
 from __future__ import annotations
 from typing import TYPE_CHECKING

@@ -1,4 +1,9 @@
-"""Route for registering a new user."""
+"""
+register.py
+Route for registering a new user.
+@jasonyi
+Created 20/05/2024
+"""
 
 from __future__ import annotations
 from aiohttp import web
