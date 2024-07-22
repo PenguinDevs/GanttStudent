@@ -330,14 +330,26 @@ class TaskEditController(BaseController):
                 "end".
         """
         def _set_date(date: datetime):
+            print('a')
             if field == "start":
+                # The start date was changed.
                 self.start_date = date.timestamp()
+
+                if self.end_date <= self.start_date:
+                    # Ensure the end date is always after the end date.
+                    self.end_date = self.start_date + timedelta(days=1).total_seconds()
             elif field == "end":
+                # The end date was changed.
                 self.end_date = date.timestamp()
 
-            if self.end_date < self.start_date:
-                # Ensure the end date is always after the start date.
-                self.start_date = self.end_date - timedelta(days=1).total_seconds()
+                if self.end_date <= self.start_date:
+                    # Ensure the end date is always after the start date.
+                    self.start_date = self.end_date - timedelta(days=1).total_seconds()
+
+            if self._task_data and (datetime.fromtimestamp(self.start_date) - self._client.main_window.project_view_controller.start_date).days < self._client.main_window.project_view_controller._task_items[self._task_data["task_uuid"]].min_column:
+                # The start date cannot be before the parent task's end date.
+                self.start_date = self._client.main_window.project_view_controller.start_date.timestamp() + self._client.main_window.project_view_controller._task_items[self._task_data["task_uuid"]].min_column * 24 * 60 * 60
+                create_message_dialog(self._view, "Error", f"Cannot have a start date that is before the parent task's end date ({datetime.fromtimestamp(self.start_date).strftime('%d/%m/%y')}).").exec()
 
             self._display_date_fields()
 
@@ -367,6 +379,7 @@ class TaskEditController(BaseController):
 
         # Bind create event.
         self._view.create_button.clicked.connect(self._on_confirm_clicked)
+        self._view.name_field.returnPressed.connect(self._on_confirm_clicked)
 
         # Bind delete event.
         self._view.delete_button.clicked.connect(lambda: self.delete_task(self._task_data["task_uuid"]))

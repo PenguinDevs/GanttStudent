@@ -188,7 +188,7 @@ QPushButton:hover {
 }</string>
          </property>
          <property name="text">
-          <string>Add task +</string>
+          <string>Add task ➕</string>
          </property>
         </widget>
         <widget class="QPushButton" name="add_milestone_button">
@@ -239,7 +239,7 @@ QPushButton:hover {
 }</string>
          </property>
          <property name="text">
-          <string>Add milestone +</string>
+          <string>Add milestone ➕</string>
          </property>
         </widget>
        </widget>

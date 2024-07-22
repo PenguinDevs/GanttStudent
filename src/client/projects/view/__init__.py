@@ -176,15 +176,15 @@ class ProjectViewPage(BasePage):
 
         self.edit_menu = self.menu_bar.addMenu('&Edit')
 
-        self.undo_action = QAction()
-        self.undo_action.setText('Undo')
-        self.edit_menu.addAction(self.undo_action)
+        # self.undo_action = QAction()
+        # self.undo_action.setText('Undo')
+        # self.edit_menu.addAction(self.undo_action)
 
-        self.redo_action = QAction()
-        self.redo_action.setText('Redo')
-        self.edit_menu.addAction(self.redo_action)
+        # self.redo_action = QAction()
+        # self.redo_action.setText('Redo')
+        # self.edit_menu.addAction(self.redo_action)
 
-        self.edit_menu.addSeparator()
+        # self.edit_menu.addSeparator()
 
         self.create_menu = self.edit_menu.addMenu('&Create')
 

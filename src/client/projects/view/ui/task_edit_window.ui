@@ -1202,7 +1202,7 @@ QPushButton:hover {
 }</string>
     </property>
     <property name="text">
-     <string>Confirm</string>
+     <string>Confirm✅</string>
     </property>
    </widget>
    <widget class="QPushButton" name="cancel_button">
@@ -1235,7 +1235,7 @@ QPushButton:hover {
 }</string>
     </property>
     <property name="text">
-     <string>Cancel</string>
+     <string>Cancel🚫</string>
     </property>
    </widget>
    <widget class="QPushButton" name="start_field">
@@ -1307,7 +1307,7 @@ QPushButton:hover {
      <rect>
       <x>20</x>
       <y>490</y>
-      <width>111</width>
+      <width>121</width>
       <height>81</height>
      </rect>
     </property>
@@ -1332,7 +1332,7 @@ QPushButton:hover {
 }</string>
     </property>
     <property name="text">
-     <string>DELETE</string>
+     <string>DELETE🗑️</string>
     </property>
    </widget>
   </widget>
