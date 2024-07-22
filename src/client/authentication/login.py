@@ -8,7 +8,8 @@ Created 23/05/2024
 import os
 
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QUrl, Qt
+from PyQt6.QtGui import QCursor
 
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
@@ -130,5 +131,7 @@ class LoginController(BaseController):
         # Set error label to wrap text.
         self._view.error_label.setWordWrap(True)
 
+
         # Switch to register screen.
         self._view.register_label.clicked.connect(self._switch_to_register)
+        self._view.register_label.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))

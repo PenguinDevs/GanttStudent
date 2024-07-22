@@ -30,7 +30,7 @@ from projects.view import ProjectViewPage, ProjectViewController
 load_dotenv()
 
 CACHE_PATH = "cache.json"
-MIN_CACHE_SAVE_INTERVAL = 5
+MIN_CACHE_SAVE_INTERVAL = 2
 
 
 class ClientApplication():
@@ -93,7 +93,6 @@ class ClientApplication():
         if time.time() - self.last_file_save < MIN_CACHE_SAVE_INTERVAL:
             # Do not save the cache if the last save was less than MIN_CACHE_SAVE_INTERVAL seconds ago.
             return
-        
         try:
             with open(CACHE_PATH, "w") as file:
                 json.dump(self.cache, file)

@@ -125,7 +125,7 @@ QPushButton:hover {
 }</string>
       </property>
       <property name="text">
-       <string>Open</string>
+       <string>Open📂</string>
       </property>
      </widget>
      <widget class="QPushButton" name="delete_button">
@@ -176,7 +176,7 @@ QPushButton:hover {
 }</string>
       </property>
       <property name="text">
-       <string>Delete</string>
+       <string>Delete🗑️</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="item_name">

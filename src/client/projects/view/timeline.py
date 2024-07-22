@@ -475,7 +475,6 @@ class DragItem(QPushButton):
         elif mouse_event.buttons() == Qt.MouseButton.RightButton:
             # The user is holding down the right mouse button after right
             # holding on the widget.
-            # TODO: Arrow preview here
             drag = QDrag(self)
             mime = QMimeData()
             drag.setMimeData(mime)
