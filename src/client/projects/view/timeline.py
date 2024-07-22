@@ -67,6 +67,9 @@ class TimelineGridWidget(QWidget):
     # Row and column mapping to the task item.
     row_column_task_mapping = {}
 
+    # All dependencies for each task.
+    all_dependencies = {}
+
     def __init__(self, *args, **kwargs) -> None:
         """Class initialisation."""
         super().__init__()
@@ -82,7 +85,17 @@ class TimelineGridWidget(QWidget):
 
         self.setLayout(self.grid_layout)
 
-        self.tasks_updated.connect(self.update_row_column_task_mapping)
+        self.tasks_updated.connect(self._on_tasks_updated)
+
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+    def _on_tasks_updated(self, data: list) -> None:
+        """
+        Update the row and column mapping to each task item.
+        """
+        self._tasks = data[0]
+        self.update_row_column_task_mapping(data)
+        self.update_all_dependencies(data)
 
     def update_row_column_task_mapping(self, data: list = None) -> None:
         """
@@ -94,6 +107,24 @@ class TimelineGridWidget(QWidget):
             widget_row, widget_column, _, days = self.grid_layout.getItemPosition(i)
             for j in range(days):
                 self.row_column_task_mapping[f"{widget_row}:{widget_column+j}"] = widget
+
+    def update_all_dependencies(self, data: list) -> None:
+        """
+        Update all the dependencies for each task.
+        """
+        self.all_dependencies.clear()
+        
+        tasks = data[0]
+        def recursive_add_dependencies(task_uuid: str, dependencies: list) -> None:
+            if task_uuid in tasks.keys():
+                for dependency in tasks[task_uuid]["dependencies"]:
+                    dependencies.add(dependency)
+                    recursive_add_dependencies(dependency, dependencies)
+        
+        for task_uuid in tasks:
+            dependencies = set()
+            recursive_add_dependencies(task_uuid, dependencies)
+            self.all_dependencies[task_uuid] = dependencies
 
     def setup_drag_indicator(self) -> None:
         """
@@ -166,13 +197,20 @@ class TimelineGridWidget(QWidget):
                 offset_cells_column = 0 - (self._widget.offset.x() // CELL_WIDTH)
 
             if not row is None and not column is None and not cell_height is None and not cell_width is None:
+                new_row = max(self._widget.min_row, min(self.max_rows, row))
+                new_column = max(self._widget.min_column, column+offset_cells_column)
+
+                for dependency in self.all_dependencies[self._widget.task_uuid]:
+                    if self._tasks[dependency]["row"] == new_row-1:
+                        # Cannot place the task item on the same row as its dependency.
+                        return
+
                 # Inserting item into the grid also updates its position even if its
                 # already in the layout.
-                print(self._widget.min_row)
                 self.grid_layout.addWidget(
                     self._drag_target_indicator,
-                    max(self._widget.min_row, min(self.max_rows, row)),
-                    max(self._widget.min_column, column+offset_cells_column),
+                    new_row,
+                    new_column,
                     cell_height,
                     cell_width
                 )

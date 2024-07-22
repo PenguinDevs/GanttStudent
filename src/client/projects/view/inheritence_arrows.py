@@ -160,23 +160,26 @@ class Arrow():
         self._draw()
 
     def _draw(self):
-        self._scene.clear()
+        try:
+            self._scene.clear()
 
-        path = Path()
-        path._sourcePoint = QtCore.QPointF()
-        path._sourcePoint.setX((CELL_WIDTH*(self._column_span-1)) + CELL_WIDTH//2)
-        path._sourcePoint.setY(CELL_HEIGHT*self._row_span)
-        path._destinationPoint = QtCore.QPointF()
-        path._destinationPoint.setX(0)
-        path._destinationPoint.setY(CELL_HEIGHT//2)
-        self._scene.addItem(path)
+            path = Path()
+            path._sourcePoint = QtCore.QPointF()
+            path._sourcePoint.setX((CELL_WIDTH*(self._column_span-1)) + CELL_WIDTH//2)
+            path._sourcePoint.setY(CELL_HEIGHT*self._row_span)
+            path._destinationPoint = QtCore.QPointF()
+            path._destinationPoint.setX(0)
+            path._destinationPoint.setY(CELL_HEIGHT//2)
+            self._scene.addItem(path)
 
-        self._view.setMaximumSize(CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
-        self._view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self._view.setStyleSheet("background: transparent; border: none;")
-        self._view.setSceneRect(0, 0, CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
-        self._parent.layout().addWidget(self._view, self._source_row, self._source_column+1, self._row_span, self._column_span)
+            self._view.setMaximumSize(CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
+            self._view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self._view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            self._view.setStyleSheet("background: transparent; border: none;")
+            self._view.setSceneRect(0, 0, CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
+            self._parent.layout().addWidget(self._view, self._source_row, self._source_column+1, self._row_span, self._column_span)
+        except Exception as e:
+            print(f"Failed to draw arrow: {e}")
 
         self._view.show()
     

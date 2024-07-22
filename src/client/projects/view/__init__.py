@@ -528,7 +528,7 @@ class ProjectViewController(BaseController):
         # Ensure that the drag indicator is at the top of the z-index.
         self._view.drag_area._drag_target_indicator.raise_()
 
-        self._view.drag_area.tasks_updated.emit([])
+        self._view.drag_area.tasks_updated.emit([self._tasks])
 
     def hide_arrows(self, data: list = []) -> None:
         """

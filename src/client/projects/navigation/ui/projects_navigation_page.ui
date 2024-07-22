@@ -350,9 +350,7 @@ color: #ffffff;</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">border: 0px;
-background: #161e3c;
-color: #ffffff;</string>
+          <string notr="true">background: transparent;</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -383,9 +381,7 @@ color: #ffffff;</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">border: 0px;
-background: #161e3c;
-color: #ffffff;</string>
+          <string notr="true">background: transparent;</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -416,9 +412,7 @@ color: #ffffff;</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">border: 0px;
-background: #161e3c;
-color: #ffffff;</string>
+          <string notr="true">background: transparent;</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -449,9 +443,7 @@ color: #ffffff;</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">border: 0px;
-background: #161e3c;
-color: #ffffff;</string>
+          <string notr="true">background: transparent;</string>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
