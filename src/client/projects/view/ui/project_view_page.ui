@@ -87,7 +87,7 @@
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
         <property name="toolTip">
-         <string>Login</string>
+         <string>Exit</string>
         </property>
         <property name="styleSheet">
          <string notr="true">border: 2px solid #ff8f8f;
@@ -172,7 +172,7 @@ color: #3a414a;</string>
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="toolTip">
-          <string>Login</string>
+          <string>Add task (Ctrl+T)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {
@@ -223,7 +223,7 @@ QPushButton:hover {
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="toolTip">
-          <string>Login</string>
+          <string>Add milestone (Ctrl+M)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {

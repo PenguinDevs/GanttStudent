@@ -262,6 +262,9 @@ qproperty-alignment: AlignLeft;</string>
              <bold>true</bold>
             </font>
            </property>
+           <property name="toolTip">
+            <string>Username</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">QLineEdit {
 	border: 2px solid #979ea8;
@@ -312,6 +315,9 @@ QLineEdit:focus {
              <bold>true</bold>
             </font>
            </property>
+           <property name="toolTip">
+            <string>Password</string>
+           </property>
            <property name="styleSheet">
             <string notr="true">QLineEdit {
 	border: 2px solid #979ea8;
@@ -361,6 +367,9 @@ QLineEdit:focus {
              <pointsize>20</pointsize>
              <bold>true</bold>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Confirm password</string>
            </property>
            <property name="styleSheet">
             <string notr="true">QLineEdit {
@@ -478,6 +487,9 @@ QPushButton:hover {
              <underline>false</underline>
              <strikeout>false</strikeout>
             </font>
+           </property>
+           <property name="toolTip">
+            <string>Log in</string>
            </property>
            <property name="styleSheet">
             <string notr="true">QPushButton {

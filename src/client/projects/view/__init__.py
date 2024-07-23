@@ -7,6 +7,7 @@ Created 12/06/2024
 
 import os
 from datetime import datetime, timedelta, timezone
+from copy import deepcopy
 
 from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
@@ -15,6 +16,8 @@ from PyQt6.QtGui import (
     QAction,
     QMouseEvent,
     QFont,
+    QShortcut,
+    QKeySequence
 )
 from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame
 
@@ -176,15 +179,15 @@ class ProjectViewPage(BasePage):
 
         self.edit_menu = self.menu_bar.addMenu('&Edit')
 
-        # self.undo_action = QAction()
-        # self.undo_action.setText('Undo')
-        # self.edit_menu.addAction(self.undo_action)
+        self.undo_action = QAction()
+        self.undo_action.setText('Undo')
+        self.edit_menu.addAction(self.undo_action)
 
-        # self.redo_action = QAction()
-        # self.redo_action.setText('Redo')
-        # self.edit_menu.addAction(self.redo_action)
+        self.redo_action = QAction()
+        self.redo_action.setText('Redo')
+        self.edit_menu.addAction(self.redo_action)
 
-        # self.edit_menu.addSeparator()
+        self.edit_menu.addSeparator()
 
         self.create_menu = self.edit_menu.addMenu('&Create')
 
@@ -292,6 +295,7 @@ class ProjectViewController(BaseController):
 
         # Render the tasks on the timeline, whether it be on the first time, or
         # updating the tasks.
+        self.set_history_checkpoint()
         self.render()
 
     def fetch_tasks(self) -> None:
@@ -343,6 +347,8 @@ class ProjectViewController(BaseController):
         # Clear data
         self._project_data = None
         self._tasks = {}
+        self._history = []
+        self._history_index = 0
         
         self.start_date = None
         self.end_date = None
@@ -633,6 +639,8 @@ class ProjectViewController(BaseController):
 
             self.render()
 
+            self.set_history_checkpoint()
+
     def change_task_row(self, task_uuid: int, row: int) -> None:
         """
         Change the row of a task by shifting the rows of other tasks.
@@ -726,6 +734,49 @@ class ProjectViewController(BaseController):
         self.task_edit_controller.update_task(destination_task)
 
         self.render()
+        self.set_history_checkpoint()
+
+    def set_history_checkpoint(self) -> None:
+        """
+        Set a checkpoint in the history for the undo/redo system.
+        """
+        if self._history_index != len(self._history) - 1:
+            # If the history index is not the latest.
+            self._history = self._history[:self._history_index+1]
+            self._history_index = len(self._history) - 1
+            print('rev')
+
+        self._history.append((deepcopy(self._project_data), deepcopy(self._tasks)))
+
+        # Truncate to a max of 500 history items.
+        if len(self._history) > 500:
+            self._history = self._history[-500:]
+
+        self._history_index = len(self._history) - 1
+
+    def undo(self) -> None:
+        """
+        Undo the last action.
+        """
+        if self._history_index > 0:
+            self._history_index -= 1
+            self._project_data, self._tasks = self._history[self._history_index]
+            self.render()
+    
+            for task in self._tasks.values():
+                self.task_edit_controller.update_task(task)
+
+    def redo(self) -> None:
+        """
+        Redo the last action.
+        """
+        if self._history_index < len(self._history) - 1:
+            self._history_index += 1
+            self._project_data, self._tasks = self._history[self._history_index]
+            self.render()
+    
+            for task in self._tasks.values():
+                self.task_edit_controller.update_task(task)
 
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
         """
@@ -755,11 +806,21 @@ class ProjectViewController(BaseController):
         self._view.add_task_button.clicked.connect(self.create_task)
         self._view.add_milestone_button.clicked.connect(self.create_milestone)
 
+        # Bind undo/redo.
+        self._view.undo_action.triggered.connect(self.undo)
+        self._view.redo_action.triggered.connect(self.redo)
+
         # Syncing scrollbars.
         # This is to ensure that the vertical scrollbars of the task list and
         # the timeline are in sync.
         self._view.tasks.verticalScrollBar().valueChanged.connect(self._on_vertical_scrollbar_updated)
         self._view.timeline.verticalScrollBar().valueChanged.connect(self._on_vertical_scrollbar_updated)
+
+        # Shortcuts
+        self._view.new_task_action.setShortcut(QKeySequence("Ctrl+T"))
+        self._view.new_milestone_action.setShortcut(QKeySequence("Ctrl+M"))
+        self._view.undo_action.setShortcut(QKeySequence("Ctrl+Z"))
+        self._view.redo_action.setShortcut(QKeySequence("Ctrl+Y"))
 
 class RowLabel(QFrame):
     """

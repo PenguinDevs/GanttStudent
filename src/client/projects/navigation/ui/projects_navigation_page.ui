@@ -185,6 +185,9 @@ padding: 8px;</string>
               <bold>true</bold>
              </font>
             </property>
+            <property name="toolTip">
+             <string>Search (Ctrl+F)</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">border: 0px;
 background: #1e2749;
@@ -236,7 +239,7 @@ qproperty-alignment: AlignLeft;</string>
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
          <property name="toolTip">
-          <string>Login</string>
+          <string>New project (Ctrl+N)</string>
          </property>
          <property name="styleSheet">
           <string notr="true">QPushButton {

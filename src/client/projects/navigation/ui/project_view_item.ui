@@ -109,7 +109,7 @@ color: #ffffff;</string>
        <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="toolTip">
-       <string>Login</string>
+       <string>Open</string>
       </property>
       <property name="styleSheet">
        <string notr="true">QPushButton {
@@ -160,7 +160,7 @@ QPushButton:hover {
        <cursorShape>PointingHandCursor</cursorShape>
       </property>
       <property name="toolTip">
-       <string>Login</string>
+       <string>Delete</string>
       </property>
       <property name="styleSheet">
        <string notr="true">QPushButton {
@@ -195,6 +195,9 @@ QPushButton:hover {
       </property>
       <property name="focusPolicy">
        <enum>Qt::ClickFocus</enum>
+      </property>
+      <property name="toolTip">
+       <string>Rename</string>
       </property>
       <property name="styleSheet">
        <string notr="true">qproperty-alignment: AlignLeft;

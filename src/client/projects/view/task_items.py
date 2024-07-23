@@ -51,6 +51,12 @@ class TimelineTaskItem(DragItem):
                 border-radius: 7px;
                 background-color: rgba({self._colour_r}, {self._colour_g}, {self._colour_b}, 255);
             }}
+
+            QToolTip {{ 
+                background-color: black; 
+                color: white; 
+                border: black solid 1px
+            }}
             """
         )
     
@@ -126,6 +132,12 @@ class TimelineMilestoneItem(DragItem):
         self.setStyleSheet(
             f"""
             background: {colour};
+
+            QToolTip {{ 
+                background-color: black; 
+                color: white; 
+                border: black solid 1px
+            }}
             """
         )
 
