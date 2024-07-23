@@ -72,7 +72,7 @@ class TasksRoute(WebAppRoutes):
                     if len(value) < validation_info[1]:
                         return server.json_payload_response(400, {"message": f"{field} must be longer than {validation_info[1]} chars."})
                     elif len(value) > validation_info[2]:
-                        return server.json_payload_response(400, {"message": f"{field} must be shorter than {validation_info[1]} chars."})
+                        return server.json_payload_response(400, {"message": f"{field} must be shorter than {validation_info[2]} chars."})
             else:
                 return server.json_payload_response(400, {"message": f"Missing field in task_data: {field}."})
         

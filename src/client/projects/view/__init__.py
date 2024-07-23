@@ -60,6 +60,8 @@ class ProjectViewPage(BasePage):
     def _setup_drag_area(self) -> None:
         """Setup the drag area for the timeline."""
         self.drag_area = TimelineGridWidget(self.timeline_scroll_area)
+        self._test_arrow = Arrow(self.drag_area)
+        self._test_arrow.set_source_destination(0, 0, 1, 1)
         self.timeline_scroll_area.layout().addWidget(self.drag_area, 0, 0)
 
     def setup_task_rows(self) -> None:
@@ -754,17 +756,37 @@ class ProjectViewController(BaseController):
 
         self._history_index = len(self._history) - 1
 
+    def _make_changes(self, history_index: int) -> None:
+        """
+        Make changes to the project data and tasks based on the history index.
+
+        Args:
+            history_index (int): The history index to make changes based on.
+        """
+        new_project_data, new_tasks = self._history[history_index]
+
+        for task in new_tasks.values():
+            self.task_edit_controller.update_task(task)
+        
+        for old_task in self._tasks:
+            if not old_task in new_tasks:
+                self.task_edit_controller.delete_task(old_task)
+        
+        for task in new_tasks:
+            if not task in self._tasks:
+                self.task_edit_controller.create_task(new_tasks[task])
+
+        self._project_data, self._tasks = new_project_data, new_tasks
+
+        self.render()
+
     def undo(self) -> None:
         """
         Undo the last action.
         """
         if self._history_index > 0:
             self._history_index -= 1
-            self._project_data, self._tasks = self._history[self._history_index]
-            self.render()
-    
-            for task in self._tasks.values():
-                self.task_edit_controller.update_task(task)
+            self._make_changes(self._history_index)
 
     def redo(self) -> None:
         """
@@ -772,11 +794,8 @@ class ProjectViewController(BaseController):
         """
         if self._history_index < len(self._history) - 1:
             self._history_index += 1
-            self._project_data, self._tasks = self._history[self._history_index]
-            self.render()
-    
-            for task in self._tasks.values():
-                self.task_edit_controller.update_task(task)
+            self._make_changes(self._history_index)
+
 
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
         """

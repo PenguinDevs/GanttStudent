@@ -231,17 +231,7 @@ class TaskEditController(BaseController):
                 "dependencies": [],
             }
 
-            reply: QNetworkReply = self._network_manager.put(
-                self._new_task,
-                to_json_data(
-                    {
-                        "access_token": self._client.cache["access_token"],
-                        "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
-                        "task_data": task_data
-                    }
-                )
-            )
-            reply.finished.connect(lambda: self._on_new_task_response(reply))
+            self.new_task(task_data)
 
     def _on_task_updated_response(self, reply: QNetworkReply) -> None:
         """
@@ -320,6 +310,25 @@ class TaskEditController(BaseController):
             )
         )
         reply.finished.connect(lambda: self._on_task_deleted_response(reply))
+
+    def new_task(self, task_uuid: str) -> None:
+        """
+        Create a task to the server.
+
+        Args:
+            task_data (dict): The task data to delete.
+        """
+        reply: QNetworkReply = self._network_manager.put(
+            self._new_task,
+            to_json_data(
+                {
+                    "access_token": self._client.cache["access_token"],
+                    "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
+                    "task_uuid": task_uuid
+                }
+            )
+        )
+        reply.finished.connect(lambda: self._on_new_task_response(reply))
 
     def _prompt_calender(self, field: str) -> None:
         """
