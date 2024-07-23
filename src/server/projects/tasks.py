@@ -248,6 +248,8 @@ class TasksRoute(WebAppRoutes):
             # Shift all tasks with a row greater than the deleted task's row down by 1.
             await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}, inc={"row": -1})
         
+        await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid}, pull={"dependencies": task_uuid})
+        
         return server.json_payload_response(200, {
             "message": "Task updated.",
             "task_uuid": task_uuid,
