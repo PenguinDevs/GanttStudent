@@ -231,11 +231,11 @@ class TimelineGridWidget(QWidget):
         This is used to place the item in the correct location on the timeline
         grid.
         """
+        self.show_arrows.emit([])
         if self._prev_buttons == Qt.MouseButton.LeftButton:
             # Use drop target location for destination, then hide it.
             row, column, cell_height, cell_width = self.grid_layout.getItemPosition(self.grid_layout.indexOf(self._drag_target_indicator))
             self._drag_target_indicator.hide()
-            self.show_arrows.emit([])
             
             if not row is None and not column is None and not cell_height is None and not cell_width is None and not self._widget is None:
                 # Inserting item into the grid also updates its position even if its

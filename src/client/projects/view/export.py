@@ -97,7 +97,7 @@ def export_project(project_data: dict, tasks: dict) -> Image:
         end_date = datetime.fromtimestamp(task["end_date"])
 
         image_draw.rectangle([tuple(np.add(grid_position, (0, CELL_HEIGHT*(row+1)))), tuple(np.add(grid_position, (TASK_ROW_WIDTH, CELL_HEIGHT*(row+2))))] , fill=ODD_COLUMN_COLOUR, outline=CELL_BORDER_COLOUR, width=2)
-        image_draw.text(np.add(grid_position, (10, 4 + CELL_HEIGHT*(row+1))), task["name"], "white", CELL_FONT)
+        image_draw.text(np.add(grid_position, (10, 4 + CELL_HEIGHT*(row+1))), task["name"], "green" if task["completed"] else "white", CELL_FONT)
         
         create_cell(image_draw, tuple(np.add(grid_position, (TASK_ROW_WIDTH, CELL_HEIGHT*(row+1)))),  start_date.strftime("%d/%m"), ODD_COLUMN_COLOUR)
         create_cell(image_draw, tuple(np.add(grid_position, (TASK_ROW_WIDTH + CELL_WIDTH, CELL_HEIGHT*(row+1)))), end_date.strftime("%d/%m"), ODD_COLUMN_COLOUR)

@@ -502,7 +502,7 @@ class ProjectViewController(BaseController):
             # Set the row item's task data.
             # This is applied regardless of whether the row item has been created
             # just now, or already exists.
-            self._row_items[task_uuid].set_task_data(task["name"], datetime.fromtimestamp(task["start_date"]), datetime.fromtimestamp(task["end_date"]))
+            self._row_items[task_uuid].set_task_data(task["name"], datetime.fromtimestamp(task["start_date"]), datetime.fromtimestamp(task["end_date"]), task["completed"])
             self._view.tasks_frame.layout().addWidget(self._row_items[task_uuid], task["row"]+1, 0)
 
         def dependency_recursion(task_uuid: int, parent_task: dict = None) -> None:
@@ -810,7 +810,7 @@ class ProjectViewController(BaseController):
         Export the project into a .pdf.
         """
         image = export_project(self._project_data, self._tasks)
-        file_path, file_type = QFileDialog.getSaveFileName(self._view, "Pick a file", filter="Portable Document Format (*.pdf)")
+        file_path, file_type = QFileDialog.getSaveFileName(self._view, "Choose a save location", filter="Portable Document Format (*.pdf)")
         if file_path == '':
             return
         
@@ -876,7 +876,7 @@ class RowLabel(QFrame):
     def _load_ui(self) -> None:
         uic.loadUi(os.path.join(os.path.dirname(os.path.abspath(__file__)), "ui\\project_view_task_item.ui"), self)
         
-    def set_task_data(self, name: str, start: datetime, end: datetime) -> None:
+    def set_task_data(self, name: str, start: datetime, end: datetime, completed: bool) -> None:
         """
         Visually assign the task information to the row label.
 
@@ -884,7 +884,8 @@ class RowLabel(QFrame):
             name (str): The name of the task.
             start (datetime): The start date of the task.
             end (datetime): The end date of the task.
+            completed (bool): Whether the task is completed or not.
         """
-        self.name_label.setText(name)
+        self.name_label.setText(f"{'✅' if completed else ''} {name}")
         self.start_label.setText(start.strftime("%d/%m"))
         self.end_label.setText(end.strftime("%d/%m"))
