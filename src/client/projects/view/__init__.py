@@ -16,7 +16,6 @@ from PyQt6.QtGui import (
     QAction,
     QMouseEvent,
     QFont,
-    QShortcut,
     QKeySequence
 )
 from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame
@@ -36,7 +35,8 @@ from .config import (
 from .task_edit import TaskEditWindow, TaskEditController
 from .timeline import TimelineGridWidget, set_timeline_objects
 from .task_items import TimelineTaskItem, TimelineMilestoneItem
-from .inheritence_arrows import Arrow, Path
+from .inheritence_arrows import Arrow
+from .export import export_project
 set_timeline_objects(TimelineTaskItem, TimelineMilestoneItem)
 
 
@@ -201,6 +201,10 @@ class ProjectViewPage(BasePage):
         self.new_milestone_action.setText('New milestone')
         self.create_menu.addAction(self.new_milestone_action)
 
+        self.export_action = QAction()
+        self.export_action.setText('Export')
+        self.create_menu.addAction(self.export_action)
+
         return widget
 class ProjectViewController(BaseController):
     """Project view controller class."""
@@ -264,6 +268,7 @@ class ProjectViewController(BaseController):
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
         self._tasks = payload["tasks"]
+        export_project(self._project_data, self._tasks)
 
         if self.start_date is None or self.end_date is None:
             # self.start_date or self.end_date are None if this is the first
@@ -746,7 +751,6 @@ class ProjectViewController(BaseController):
             # If the history index is not the latest.
             self._history = self._history[:self._history_index+1]
             self._history_index = len(self._history) - 1
-            print('rev')
 
         self._history.append((deepcopy(self._project_data), deepcopy(self._tasks)))
 
@@ -776,7 +780,7 @@ class ProjectViewController(BaseController):
             if not task in self._tasks:
                 self.task_edit_controller.create_task(new_tasks[task])
 
-        self._project_data, self._tasks = new_project_data, new_tasks
+        self._project_data, self._tasks = deepcopy(new_project_data), deepcopy(new_tasks)
 
         self.render()
 
@@ -795,7 +799,6 @@ class ProjectViewController(BaseController):
         if self._history_index < len(self._history) - 1:
             self._history_index += 1
             self._make_changes(self._history_index)
-
 
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
         """
