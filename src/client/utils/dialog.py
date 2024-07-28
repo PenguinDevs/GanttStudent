@@ -129,7 +129,13 @@ def create_calender_dialog(parent: QWidget, callback, initial_date: datetime) ->
     def close_dialog(override_date: datetime = None):
         if override_date is None:
             selected_date = calender.selectedDate()
-            callback(datetime(selected_date.year(), selected_date.month(), selected_date.day()))
+            try:
+                if selected_date.year() > 3000:
+                    raise ValueError
+                callback(datetime(selected_date.year(), selected_date.month(), selected_date.day()))
+            except ValueError:
+                # Invalid date given
+                callback(initial_date)
         else:
             callback(override_date)
         dialog.close()

@@ -339,7 +339,6 @@ class TaskEditController(BaseController):
                 "end".
         """
         def _set_date(date: datetime):
-            print('a')
             if field == "start":
                 # The start date was changed.
                 self.start_date = date.timestamp()

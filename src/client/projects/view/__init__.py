@@ -814,6 +814,9 @@ class ProjectViewController(BaseController):
         if file_path == '':
             return
         
+        if not file_path.endswith(".pdf"):
+            file_path += ".pdf"
+
         image.save(file_path)
 
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
