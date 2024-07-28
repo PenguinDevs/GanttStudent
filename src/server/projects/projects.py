@@ -64,7 +64,6 @@ class ProjectsRoute(WebAppRoutes):
             "admin": body["username"],
             "created_at": datetime.now(timezone.utc).timestamp(),
             "updated_at": datetime.now(timezone.utc).timestamp(),
-            "invitees": [],
         }
 
         await server.db.update("projects", "project_data", {"_id": uuid}, project_data)
