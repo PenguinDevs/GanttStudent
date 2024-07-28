@@ -310,7 +310,7 @@ class ProjectsNavigationController(BaseController):
             to_json_data(
                 {
                     "access_token": self._client.cache["access_token"],
-                    "project_name": project_name,
+                    "project_name": project_name.strip(),
                 }
             )
         )

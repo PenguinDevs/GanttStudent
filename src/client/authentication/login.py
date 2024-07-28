@@ -79,6 +79,8 @@ class LoginController(BaseController):
             self.display_error("The server has experienced an unexpected error.")
         elif error is QNetworkReply.NetworkError.AuthenticationRequiredError:
             self.display_error("Invalid username or password.")
+        elif error is QNetworkReply.NetworkError.ContentNotFoundError:
+            self.display_error("Invalid username or password.")
         else:
             self.display_error(f"An unexpected error of type {error.name}. Please try again later.")
 

@@ -98,18 +98,20 @@ class ProjectsRoute(WebAppRoutes):
         uuid = body["uuid"]
         name = body["name"]
         # Validation checks.
-        if uuid == '':
+        if uuid == "":
             return server.json_payload_response(400, {"message": "uuid cannot be empty."})
-        elif name == '':
+        elif name == "":
             return server.json_payload_response(400, {"message": "Project name cannot be empty."})
+        elif len(name) > 50:
+            return server.json_payload_response(400, {"message": "Project name must be 50 characters or less."})
 
         # Find the project.
         project_data = await server.db.read("projects", "project_data", {"_id": uuid, "admin": body["username"]})
         if project_data is None:
             return server.json_payload_response(404, {"message": "Project not found or you do not have permissions to do this."})
 
-        project_data['name'] = name
-        project_data['updated_at'] = datetime.now(timezone.utc).timestamp()
+        project_data["name"] = name
+        project_data["updated_at"] = datetime.now(timezone.utc).timestamp()
 
         await server.db.update("projects", "project_data", {"_id": uuid}, project_data)
 
@@ -141,7 +143,7 @@ class ProjectsRoute(WebAppRoutes):
 
         uuid = body["uuid"]
         # Validation checks.
-        if uuid == '':
+        if uuid == "":
             return server.json_payload_response(400, {"message": "uuid cannot be empty."})
 
         # Find the project.
