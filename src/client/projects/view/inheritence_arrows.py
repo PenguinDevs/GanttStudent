@@ -18,21 +18,38 @@ class Path(QtWidgets.QGraphicsPathItem):
     def __init__(self, source: QtCore.QPointF = None, destination: QtCore.QPointF = None, *args, **kwargs):
         super(Path, self).__init__(*args, **kwargs)
 
-        self._sourcePoint = source
-        self._destinationPoint = destination
+        # Set endpoints.
+        self._source_point = source
+        self._destination_point = destination
 
+        # Set arrow head properties.
         self._arrow_height = 5
         self._arrow_width = 4
 
     def set_source(self, point: QtCore.QPointF):
-        self._sourcePoint = point
+        """
+        Set the source point of the path.
+
+        Args:
+            point (QtCore.QPointF): The source point.
+        """
+        self._source_point = point
 
     def set_destination(self, point: QtCore.QPointF):
-        self._destinationPoint = point
+        """
+        Set the destination point of the path.
+
+        Args:
+            point (QtCore.QPointF): The destination point.
+        """
+        self._destination_point = point
     
     def square_path(self):
-        s = self._sourcePoint
-        d = self._destinationPoint
+        """
+        Returns a right-angled path between the source and destination points.
+        """
+        s = self._source_point
+        d = self._destination_point
 
         path = QtGui.QPainterPath(QtCore.QPointF(s.x(), s.y()))
         # path.lineTo(d.x(), 0)
@@ -41,45 +58,46 @@ class Path(QtWidgets.QGraphicsPathItem):
 
         return path
     
-    def calculate_arrow(self, start_point=None, end_point=None):  # calculates the point where the arrow should be drawn
-
+    def calculate_arrow(self, start_point=None, end_point=None):
+        """
+        Calculates the arrow head at the end of the path.
+        """
         try:
-            startPoint, endPoint = start_point, end_point
+            start_point, end_point = start_point, end_point
 
             if start_point is None:
-                startPoint = self._sourcePoint
+                start_point = self._source_point
 
-            if endPoint is None:
-                endPoint = self._destinationPoint
+            if end_point is None:
+                end_point = self._destination_point
 
-            dx, dy = startPoint.x() - endPoint.x(), startPoint.y() - endPoint.y()
+            dx, dy = start_point.x() - end_point.x(), start_point.y() - end_point.y()
 
             leng = math.sqrt(dx ** 2 + dy ** 2)
-            normX, normY = dx / leng, dy / leng  # normalize
+            norm_x, norm_y = dx / leng, dy / leng  # normalize
 
-            normX = 0
-            normY = -1
+            norm_x = 0
+            norm_y = -1
 
             # perpendicular vector
-            perpX = -normY
-            perpY = normX
+            perp_x = -norm_y
+            perp_y = norm_x
 
-            leftX = endPoint.x() + self._arrow_height * normX + self._arrow_width * perpX
-            leftY = endPoint.y() + self._arrow_height * normY + self._arrow_width * perpY
+            left_x = end_point.x() + self._arrow_height * norm_x + self._arrow_width * perp_x
+            left_y = end_point.y() + self._arrow_height * norm_y + self._arrow_width * perp_y
 
-            rightX = endPoint.x() + self._arrow_height * normX - self._arrow_width * perpX
-            rightY = endPoint.y() + self._arrow_height * normY - self._arrow_width * perpY
+            right_x = end_point.x() + self._arrow_height * norm_x - self._arrow_width * perp_x
+            right_y = end_point.y() + self._arrow_height * norm_y - self._arrow_width * perp_y
 
-            point2 = QtCore.QPointF(leftX, leftY)
-            point3 = QtCore.QPointF(rightX, rightY)
+            point2 = QtCore.QPointF(left_x, left_y)
+            point3 = QtCore.QPointF(right_x, right_y)
 
-            return QtGui.QPolygonF([point2, endPoint, point3])
+            return QtGui.QPolygonF([point2, end_point, point3])
 
         except (ZeroDivisionError, Exception):
             return None
 
     def paint(self, painter: QtGui.QPainter, option, widget=None) -> None:
-
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
         painter.pen().setWidth(2)
@@ -89,27 +107,24 @@ class Path(QtWidgets.QGraphicsPathItem):
         painter.drawPath(path)
         self.setPath(path)
 
-        triangle_source = self.calculate_arrow(path.pointAtPercent(0.1), self._sourcePoint)  # change path.PointAtPercent() value to move arrow on the line
+        triangle_source = self.calculate_arrow(path.pointAtPercent(0.1), self._source_point)  # change path.PointAtPercent() value to move arrow on the line
 
         if triangle_source is not None:
             painter.drawPolyline(triangle_source)
 
-
 class ViewPort(QtWidgets.QGraphicsView):
-
     def __init__(self):
         super(ViewPort, self).__init__()
 
         self.setViewportUpdateMode(QtWidgets.QGraphicsView.ViewportUpdateMode.FullViewportUpdate)
 
-        self._isdrawingPath = False
+        self._is_drawing_path = False
         self._current_path = None
 
     def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
-
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = self.mapToScene(event.pos())
-            self._isdrawingPath = True
+            self._is_drawing_path = True
             self._current_path = Path(source=pos, destination=pos)
             self.scene().addItem(self._current_path)
 
@@ -118,10 +133,9 @@ class ViewPort(QtWidgets.QGraphicsView):
         super(ViewPort, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-
         pos = self.mapToScene(event.pos())
 
-        if self._isdrawingPath:
+        if self._is_drawing_path:
             self._current_path.set_destination(pos)
             self.scene().update(self.sceneRect())
             return
@@ -129,12 +143,11 @@ class ViewPort(QtWidgets.QGraphicsView):
         super(ViewPort, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
-
         pos = self.mapToScene(event.pos())
 
-        if self._isdrawingPath:
+        if self._is_drawing_path:
             self._current_path.set_destination(pos)
-            self._isdrawingPath = False
+            self._is_drawing_path = False
             self._current_path = None
             self.scene().update(self.sceneRect())
             return
@@ -164,12 +177,12 @@ class Arrow():
             self._scene.clear()
 
             path = Path()
-            path._sourcePoint = QtCore.QPointF()
-            path._sourcePoint.setX((CELL_WIDTH*(self._column_span-1)) + CELL_WIDTH//2)
-            path._sourcePoint.setY(CELL_HEIGHT*self._row_span)
-            path._destinationPoint = QtCore.QPointF()
-            path._destinationPoint.setX(0)
-            path._destinationPoint.setY(CELL_HEIGHT//2)
+            path._source_point = QtCore.QPointF()
+            path._source_point.setX((CELL_WIDTH*(self._column_span-1)) + CELL_WIDTH//2)
+            path._source_point.setY(CELL_HEIGHT*self._row_span)
+            path._destination_point = QtCore.QPointF()
+            path._destination_point.setX(0)
+            path._destination_point.setY(CELL_HEIGHT//2)
             self._scene.addItem(path)
 
             self._view.setMaximumSize(CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
@@ -182,19 +195,3 @@ class Arrow():
             print(f"Failed to draw arrow: {e}")
 
         self._view.show()
-    
-
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-
-    window = ViewPort()
-    scene = QtWidgets.QGraphicsScene()
-    window.setScene(scene)
-    window.show()
-
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()

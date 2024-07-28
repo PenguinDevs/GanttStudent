@@ -11,13 +11,15 @@ import json
 from PyQt6 import uic
 from PyQt6.QtNetwork import QNetworkRequest, QNetworkReply, QNetworkReply
 from PyQt6.QtCore import QUrl, Qt
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QImage, QPixmap
 from PyQt6.QtWidgets import QWidget, QMenuBar, QGridLayout
 
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
 from utils.server_response import get_json_from_reply, to_json_data, handle_new_response_payload
 from utils.dialog import create_message_dialog, create_text_input_dialog
+
+from projects.view.export import export_project
 
 PROJECTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "user_projects")
 MAX_PROJECTS_COLUMNS = 3
@@ -327,6 +329,21 @@ class ProjectsNavigationController(BaseController):
         self.query = self._view.search_field.text()
         self.render_projects()
 
+    def reset(self) -> None:
+        """
+        Reset the controller.
+        """
+        self.projects = {}
+        self.query = ''
+
+        layout: QGridLayout = self._view.scroll_body.layout()
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item:
+                widget = item.widget()
+                widget.setParent(None)
+                widget.deleteLater()
+
     def show(self) -> None:
         """
         Show the projects navigation screen.
@@ -334,6 +351,7 @@ class ProjectsNavigationController(BaseController):
         Also fetches the projects from the server by doing so.
         """
         super().show()
+        self.reset()
         self.fetch_projects()
 
     def _connect_signals(self) -> None:
@@ -403,5 +421,26 @@ class ProjectViewItem(QWidget):
         # Bind rename events.
         widget.item_name.returnPressed.connect(self.rename)
         widget.item_name.focusOutEvent = lambda event: self.rename()
+
+        # Set preview image.
+        def on_tasks_fetched(reply: QNetworkReply) -> None:
+            # Do not proceed if there was an error.
+            if reply.error() != QNetworkReply.NetworkError.NoError:
+                return self._handle_error(reply, reply.error())
+            
+            reply.deleteLater()
+
+            payload = get_json_from_reply(reply)
+            handle_new_response_payload(self._controller._client, payload)
+
+            image = export_project(self._controller.projects[uuid], payload["tasks"])
+
+            data = image.tobytes("raw", "RGB") 
+            q_image = QImage(data, image.size[0], image.size[1], image.size[0]*3, QImage.Format.Format_RGB888)
+            q_pixmap = QPixmap.fromImage(q_image)
+            widget.image_preview.setPixmap(q_pixmap)
+            widget.image_preview.setScaledContents(True)
+
+        self._controller._client.main_window.project_view_controller.fetch_tasks(uuid, on_tasks_fetched)
 
         return widget

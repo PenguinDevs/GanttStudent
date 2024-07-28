@@ -45,8 +45,8 @@
      </property>
      <property name="maximumSize">
       <size>
-       <width>16777215</width>
-       <height>16777215</height>
+       <width>400</width>
+       <height>220</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -61,6 +61,27 @@ color: #ffffff;</string>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="image_preview">
+        <property name="maximumSize">
+         <size>
+          <width>270</width>
+          <height>220</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: none;</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

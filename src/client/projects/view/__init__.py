@@ -18,7 +18,7 @@ from PyQt6.QtGui import (
     QFont,
     QKeySequence
 )
-from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame
+from PyQt6.QtWidgets import QWidget, QMenuBar, QLabel, QFrame, QFileDialog
 
 from utils.window.page_base import BasePage
 from utils.window.controller_base import BaseController
@@ -169,6 +169,10 @@ class ProjectViewPage(BasePage):
         self.close_action.setText('Close')
         self.file_menu.addAction(self.close_action)
 
+        self.export_action = QAction()
+        self.export_action.setText('Export')
+        self.file_menu.addAction(self.export_action)
+
         self.file_menu.addSeparator()
 
         self.logout_action = QAction()
@@ -200,10 +204,6 @@ class ProjectViewPage(BasePage):
         self.new_milestone_action = QAction()
         self.new_milestone_action.setText('New milestone')
         self.create_menu.addAction(self.new_milestone_action)
-
-        self.export_action = QAction()
-        self.export_action.setText('Export')
-        self.create_menu.addAction(self.export_action)
 
         return widget
 class ProjectViewController(BaseController):
@@ -268,7 +268,6 @@ class ProjectViewController(BaseController):
         payload = get_json_from_reply(reply)
         handle_new_response_payload(self._client, payload)
         self._tasks = payload["tasks"]
-        export_project(self._project_data, self._tasks)
 
         if self.start_date is None or self.end_date is None:
             # self.start_date or self.end_date are None if this is the first
@@ -305,20 +304,26 @@ class ProjectViewController(BaseController):
         self.set_history_checkpoint()
         self.render()
 
-    def fetch_tasks(self) -> None:
+    def fetch_tasks(self, project_uuid: str = None, completion_callback = None) -> None:
         """
         Fetch all tasks for the project.
+
+        Args:
+            project_uuid (str): The UUID of the project to fetch the tasks for.
+                Defaults to current project's data.
+            completion_callback (function): The callback function for when the
+                tasks have been fetched. Default is self._on_fetch_completion.
         """
         reply: QNetworkReply = self._client.network_manager.post(
             self._fetch_all_tasks,
             to_json_data(
                 {
-                    "project_uuid": self._project_data["_id"],
+                    "project_uuid": project_uuid or self._project_data["_id"],
                     "access_token": self._client.cache["access_token"]
                 }
             )
         )
-        reply.finished.connect(lambda: self._on_fetch_completion(reply))
+        reply.finished.connect(lambda: completion_callback(reply) if not completion_callback is None else self._on_fetch_completion(reply))
 
     def _create_task_object(self, task_type: str) -> None:
         """
@@ -800,6 +805,17 @@ class ProjectViewController(BaseController):
             self._history_index += 1
             self._make_changes(self._history_index)
 
+    def export(self) -> None:
+        """
+        Export the project into a .pdf.
+        """
+        image = export_project(self._project_data, self._tasks)
+        file_path, file_type = QFileDialog.getSaveFileName(self._view, "Pick a file", filter="Portable Document Format (*.pdf)")
+        if file_path == '':
+            return
+        
+        image.save(file_path)
+
     def _on_vertical_scrollbar_updated(self, value: int) -> None:
         """
         A callback function for when the vertical scrollbar is updated.
@@ -831,6 +847,9 @@ class ProjectViewController(BaseController):
         # Bind undo/redo.
         self._view.undo_action.triggered.connect(self.undo)
         self._view.redo_action.triggered.connect(self.redo)
+
+        # Bind export.
+        self._view.export_action.triggered.connect(self.export)
 
         # Syncing scrollbars.
         # This is to ensure that the vertical scrollbars of the task list and

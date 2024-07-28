@@ -324,7 +324,7 @@ class TaskEditController(BaseController):
                 {
                     "access_token": self._client.cache["access_token"],
                     "project_uuid": self._client.main_window.project_view_controller._project_data["_id"],
-                    "task_uuid": task_uuid
+                    "task_data": task_uuid
                 }
             )
         )
