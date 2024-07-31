@@ -7,6 +7,7 @@ Created 12/06/2024
 
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from aiohttp import web
@@ -113,6 +114,7 @@ class TasksRoute(WebAppRoutes):
 
         # Save.
         await server.db.update("projects", "tasks", {"_id": task_data["_id"]}, task_data)
+        await server.db.update("projects", "project_data", {"_id": project_uuid}, {"updated_at": datetime.now(timezone.utc).timestamp()})
 
         return server.json_payload_response(200, {
             "message": "Task created.",
@@ -199,6 +201,7 @@ class TasksRoute(WebAppRoutes):
         
         # Save.
         await server.db.update("projects", "tasks", {"_id": body["task_data"]["_id"]}, body["task_data"])
+        await server.db.update("projects", "project_data", {"_id": project_uuid}, {"updated_at": datetime.now(timezone.utc).timestamp()})
 
         return server.json_payload_response(200, {
             "message": "Task updated.",
@@ -249,6 +252,7 @@ class TasksRoute(WebAppRoutes):
             await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid, "row": {"$gt": task_data["row"]}}, inc={"row": -1})
         
         await server.db.update_many("projects", "tasks", {"project_uuid": project_uuid}, pull={"dependencies": task_uuid})
+        await server.db.update("projects", "project_data", {"_id": project_uuid}, {"updated_at": datetime.now(timezone.utc).timestamp()})
         
         return server.json_payload_response(200, {
             "message": "Task updated.",
@@ -291,6 +295,8 @@ class TasksRoute(WebAppRoutes):
         tasks = {}
         async for task in await server.db.read_multi("projects", "tasks", {"project_uuid": project_uuid}):
             tasks[task["task_uuid"]] = task
+            
+        await server.db.update("projects", "project_data", {"_id": project_uuid}, {"updated_at": datetime.now(timezone.utc).timestamp()})
 
         return server.json_payload_response(200, {
             "message": "Tasks fetched.",
