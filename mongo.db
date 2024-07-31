@@ -1,0 +1,10 @@
+https://www.mongodb.com/ or https://www.mongodb.com/docs/manual/installation/#mongodb-community-edition-installation-tutorials
+
+
+Database: projects
+Documents: project_data, tasks
+
+Database: users:
+Documents: accounts
+
+Login credentials and server address can be set in src/server/.env
