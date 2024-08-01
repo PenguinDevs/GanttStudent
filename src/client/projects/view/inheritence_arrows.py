@@ -175,6 +175,7 @@ class Arrow():
     def _draw(self):
         try:
             self._scene.clear()
+            self._parent.layout().addWidget(self._view, self._source_row, self._source_column+1, self._row_span, self._column_span)
 
             path = Path()
             path._source_point = QtCore.QPointF()
@@ -190,7 +191,6 @@ class Arrow():
             self._view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             self._view.setStyleSheet("background: transparent; border: none;")
             self._view.setSceneRect(0, 0, CELL_WIDTH*self._column_span, CELL_HEIGHT*self._row_span)
-            self._parent.layout().addWidget(self._view, self._source_row, self._source_column+1, self._row_span, self._column_span)
         except Exception as e:
             print(f"Failed to draw arrow: {e}")
 

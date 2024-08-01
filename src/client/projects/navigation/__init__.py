@@ -163,7 +163,6 @@ class ProjectsNavigationController(BaseController):
             if item:
                 self._view.scroll_body.layout().removeWidget(item)
                 item.deleteLater()
-                del item
         
         sorted_projects = sorted(projects.items(), key=lambda x: x[1]["updated_at"], reverse=True)
 
@@ -218,7 +217,6 @@ class ProjectsNavigationController(BaseController):
                 item = self._view.scroll_body.findChild(QWidget, uuid)
                 if item:
                     self._view.scroll_body.layout().removeWidget(item)
-                    item.setParent(None)
                     item.deleteLater()
             
                 deleted.append(uuid)
@@ -341,7 +339,6 @@ class ProjectsNavigationController(BaseController):
             item = layout.itemAt(i)
             if item:
                 widget = item.widget()
-                widget.setParent(None)
                 widget.deleteLater()
 
     def show(self) -> None:
@@ -426,7 +423,7 @@ class ProjectViewItem(QWidget):
         def on_tasks_fetched(reply: QNetworkReply) -> None:
             # Do not proceed if there was an error.
             if reply.error() != QNetworkReply.NetworkError.NoError:
-                return self._handle_error(reply, reply.error())
+                return self._controller._handle_error(reply, reply.error())
             
             reply.deleteLater()
 

@@ -34,6 +34,9 @@ async def parse_json_request(request: web.Response, required_fields: list, requi
     
     if requires_auth is True:
         access_token = body["access_token"]
+        if not access_token:
+            return server.json_payload_response(400, {"message": "Missing field(s)."})
+
         decoded = decode_jwt(access_token)
         username = decoded["sub"]
         expires_at = decoded["exp"]

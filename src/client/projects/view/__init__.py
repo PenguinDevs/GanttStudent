@@ -369,14 +369,12 @@ class ProjectViewController(BaseController):
         for item in self._task_items.values():
             self._view.drag_area.grid_layout.removeWidget(item)
             item.deleteLater()
-            del item
         self._task_items = {}
 
         # Clear task UI items in the task list (on the left).
         for item in self._row_items.values():
             self._view.tasks_frame.layout().removeWidget(item)
             item.deleteLater()
-            del item
         self._row_items = {}
         
         # Clear the timeline UI object.
@@ -384,14 +382,12 @@ class ProjectViewController(BaseController):
         if item:
             self._view.timeline_scroll_area.removeWidget(item)
             item.deleteLater()
-            del item
         
         # Clear the dependency arrow objects
         for arrow in self._arrow_items.values():
             arrow._scene.clear()
             self._view.drag_area.layout().removeWidget(arrow._view)
             arrow._view.deleteLater()
-            del arrow
         self._arrow_items = {}
 
     def _get_item_double_click_callback(self, task_data: dict) -> None:
@@ -446,7 +442,6 @@ class ProjectViewController(BaseController):
                 self._view.drag_area.layout().removeWidget(arrow._view)
                 arrow._view.deleteLater()
                 self._arrow_items.pop(key)
-                del arrow
 
         # Iterate every task in the project.
         for task_uuid, task in self._tasks.items():
@@ -529,13 +524,11 @@ class ProjectViewController(BaseController):
                 self._view.drag_area.grid_layout.removeWidget(item)
                 self._task_items.pop(task_uuid)
                 item.deleteLater()
-                del item
 
                 # Delete the row item.
                 row_item = self._row_items[task_uuid]
-                row_item.deleteLater()
                 self._row_items.pop(task_uuid)
-                del row_item
+                row_item.deleteLater()
 
         # Update the maximum number of rows in the drag area.
         # This is for the drag indicator to know how many rows there are in the
