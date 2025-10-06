@@ -6,7 +6,6 @@
     </a>
   </p>
   <p>Collaborative Gantt chart desktop app built using PyQt6 for a year 12 VCE Software Development Units 3/4 SAT.</p>
-  <a href="http://penguindevs.github.io/PenguinEngine/">View docs →</a>
 </div>
 
 <div>&nbsp;</div>
